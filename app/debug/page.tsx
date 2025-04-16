@@ -1,45 +1,25 @@
-"use client"
+// app/debug/page.tsx
+"use client";
 
-import { useEffect, useState } from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { createClient } from "@/lib/supabase/server" // ✅ correto
+import { useState } from "react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import DebugServerComponent from "./DebugServerComponent"; // Importa o Server Component
 
 export default function DebugPage() {
-  const [sessionInfo, setSessionInfo] = useState<any>(null)
-  const [loading, setLoading] = useState(true)
-  const supabase = createClient()
-
-  useEffect(() => {
-    async function checkSession() {
-      try {
-        const { data, error } = await supabase.auth.getSession()
-        if (error) {
-          console.error("Error getting session:", error)
-        }
-        setSessionInfo(data)
-      } catch (e) {
-        console.error("Exception checking session:", e)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    checkSession()
-  }, [supabase.auth])
+  const [loading, setLoading] = useState(true);
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut()
-    window.location.reload()
-  }
+    // Sign out logic (caso necessário)
+  };
 
   const handleGoToDashboard = () => {
-    window.location.href = "/dashboard"
-  }
+    window.location.href = "/dashboard";
+  };
 
   const handleGoToLogin = () => {
-    window.location.href = "/login"
-  }
+    window.location.href = "/login";
+  };
 
   return (
     <div className="container py-10">
@@ -55,32 +35,20 @@ export default function DebugPage() {
             <>
               <div>
                 <h3 className="text-lg font-medium">Session Status</h3>
-                <pre className="mt-2 p-4 bg-muted rounded-md overflow-auto">{JSON.stringify(sessionInfo, null, 2)}</pre>
+                <DebugServerComponent />
               </div>
 
               <div className="flex flex-col space-y-2">
                 <h3 className="text-lg font-medium">Actions</h3>
                 <div className="flex flex-wrap gap-2">
                   <Button onClick={handleGoToDashboard}>Go to Dashboard</Button>
-                  <Button onClick={handleGoToLogin} variant="outline">
-                    Go to Login
-                  </Button>
-                  {sessionInfo?.session && (
-                    <Button onClick={handleSignOut} variant="destructive">
-                      Sign Out
-                    </Button>
-                  )}
+                  <Button onClick={handleGoToLogin} variant="outline">Go to Login</Button>
                 </div>
-              </div>
-
-              <div>
-                <h3 className="text-lg font-medium">Browser Information</h3>
-                <p className="text-sm text-muted-foreground mt-1">User Agent: {navigator.userAgent}</p>
               </div>
             </>
           )}
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

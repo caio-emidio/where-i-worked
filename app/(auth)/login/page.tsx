@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-
+import { useRouter } from "next/navigation"
 import { useState } from "react"
 import Link from "next/link"
 import { Clock } from "lucide-react"
@@ -47,7 +47,13 @@ export default function LoginPage() {
 
         // Let the middleware handle the redirect
         // Just reload the page to trigger middleware
-        window.location.reload()
+        // window.location.reload()
+        const router = useRouter()
+
+        // dentro do if (success)
+        setTimeout(() => {
+          router.push("/dashboard")
+        }, 1000)
       }
     } finally {
       setIsLoading(false)

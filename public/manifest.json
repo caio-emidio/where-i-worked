@@ -1,0 +1,11 @@
+{
+  "name": "Where I Worked",
+  "short_name": "Where I Worked",
+  "description": "Track where you work - office or home",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#7c3aed",
+  "icons": [
+  ]
+}

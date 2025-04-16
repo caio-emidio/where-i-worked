@@ -59,6 +59,7 @@
     "vaul": "^0.9.6",
     "zod": "^3.24.1",
     "@supabase/supabase-js": "latest",
+    "@supabase/ssr": "latest",
     "@supabase/auth-helpers-nextjs": "latest"
   },
   "devDependencies": {

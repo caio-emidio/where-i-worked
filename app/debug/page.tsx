@@ -3,12 +3,12 @@
 import { useEffect, useState } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { createClientSupabaseClient } from "@/lib/supabase"
+import { createClient } from "@/lib/supabase/server" // ✅ correto
 
 export default function DebugPage() {
   const [sessionInfo, setSessionInfo] = useState<any>(null)
   const [loading, setLoading] = useState(true)
-  const supabase = createClientSupabaseClient()
+  const supabase = createClient()
 
   useEffect(() => {
     async function checkSession() {

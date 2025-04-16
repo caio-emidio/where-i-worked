@@ -32,12 +32,7 @@ export async function middleware(request: NextRequest) {
     // IMPORTANT: Only redirect if absolutely necessary to prevent loops
 
     // If user is signed in and trying to access auth pages, redirect to dashboard
-    if (
-      session &&
-      (requestUrl.pathname === "/login" ||
-        requestUrl.pathname === "/signup" ||
-        requestUrl.pathname === "/forgot-password")
-    ) {
+    if (session) {
       console.log("Middleware - Authenticated user trying to access auth page, redirecting to dashboard")
       return NextResponse.redirect(new URL("/dashboard", request.url))
     }

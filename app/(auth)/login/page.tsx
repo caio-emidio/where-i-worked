@@ -27,7 +27,7 @@ export default function LoginPage() {
 
     try {
       const { error, success } = await signIn(email, password)
-
+      console.log(error, success)
       if (error) {
         console.error("Login error in form handler:", error)
         toast({
@@ -51,10 +51,11 @@ export default function LoginPage() {
         const router = useRouter()
 
         setTimeout(() => {
-          // router.push("/dashboard")
+          router.push("/dashboard")
           // window.location.reload()
-          window.location.href="/dashboard"
+          // window.location.href="/dashboard"
         }, 2000)
+        console.log("is inside success")
       }
     } finally {
       setIsLoading(false)

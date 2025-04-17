@@ -272,13 +272,19 @@ export function WorkTracker() {
     }
   };
 
-  // Function to get recent entries (last 7 days)
+  // Function to get recent entries (1st of the month till today)
   const getRecentEntries = () => {
     const recentDays = Array.from({ length: new Date().getDate() }, (_, i) =>
       subDays(new Date(), i)
     );
-    // console.log(recentDays);
-    return recentDays.map((day) => {
+  
+    // Filter out weekends (Saturday = 6, Sunday = 0)
+    const workdays = recentDays.filter((day) => {
+      const dayOfWeek = day.getDay();
+      return dayOfWeek !== 0 && dayOfWeek !== 6; // Exclude Sunday (0) and Saturday (6)
+    });
+  
+    return workdays.map((day) => {
       const entry = workEntries.find((e) => isSameDay(e.date, day));
       return {
         date: day,
@@ -286,6 +292,7 @@ export function WorkTracker() {
       };
     });
   };
+  
 
   useEffect(() => {
     setRecentEntries(getRecentEntries());
@@ -383,7 +390,7 @@ export function WorkTracker() {
       <Card>
         <CardHeader>
           <CardTitle>Recent Records</CardTitle>
-          <CardDescription>Your last {new Date().getDate()} days of work</CardDescription>
+          <CardDescription>Your last {recentEntries.length} days of work</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">

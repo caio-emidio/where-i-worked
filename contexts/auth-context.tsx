@@ -5,6 +5,8 @@ import { createContext, useContext, useEffect, useState } from "react"
 import type { Session, User } from "@supabase/supabase-js"
 import { createClientSupabaseClient } from "@/lib/supabase/client" // <- esse é o fix
 
+//t
+
 type AuthContextType = {
   user: User | null
   session: Session | null

@@ -40,18 +40,31 @@ export default function LoginPage() {
 
       if (success) {
         console.log("Login successful in form handler")
+        toast({
+          title: "Login successful",
+          description: "Welcome back!",
+        })
+        // window.location.href = "/dashboard"
         try {
-          toast({
-            title: "Login successful",
-            description: "Welcome back!",
-          })
-          window.location.href = "/dashboard"
-  
-          console.log("is inside success")     
-        } catch (error) {
-          console.log(error)
-        }
+          const router = useRouter()
 
+          router.push("/dashboard")
+    
+        } catch (error) {
+          console.log(error)          
+        }
+        
+        // Let the middleware handle the redirect
+        // Just reload the page to trigger middleware
+        // window.location.reload()
+
+        // setTimeout(() => {
+        //   // router.push("/dashboard/dashboard")
+        //   window.location.href = "/dashboard"
+        //   // window.location.reload()
+        //   // window.location.href="/dashboard"
+        // }, 2000)
+        console.log("is inside success")
       }
     } finally {
       setIsLoading(false)

@@ -51,7 +51,7 @@ export default function LoginPage() {
         const router = useRouter()
 
         setTimeout(() => {
-          router.push("/dashboard")
+          router.push("/dashboard/dashboard")
           // window.location.reload()
           // window.location.href="/dashboard"
         }, 2000)

@@ -50,9 +50,9 @@ export default function LoginPage() {
         // window.location.reload()
         const router = useRouter()
 
-        // dentro do if (success)
         setTimeout(() => {
-          router.push("/dashboard")
+          // router.push("/dashboard")
+          window.location.reload()
         }, 2000)
       }
     } finally {

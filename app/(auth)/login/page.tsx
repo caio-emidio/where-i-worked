@@ -44,11 +44,13 @@ export default function LoginPage() {
           title: "Login successful",
           description: "Welcome back!",
         })
-        // window.location.href = "/dashboard"
         try {
-          const router = useRouter()
+          // TODO: Rayter will enjoy to fix it in the future. :D
 
-          router.push("/dashboard")
+          window.location.href = "/dashboard"
+          // const router = useRouter()
+
+          // router.push("/dashboard")
     
         } catch (error) {
           console.log(error)          

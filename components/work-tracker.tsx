@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 import { Building2, Home, CalendarIcon, CalendarPlus2Icon as CalendarIcon2 } from "lucide-react"
 import { format, subDays, isSameDay } from "date-fns"
-import { enUS } from "date-fns/locale"
+import { enIE } from "date-fns/locale"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -190,7 +190,7 @@ export function WorkTracker() {
                   className={cn("w-full justify-start text-left font-normal", !selectedDate && "text-muted-foreground")}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {selectedDate ? format(selectedDate, "PPP", { locale: enUS }) : <span>Select a date</span>}
+                  {selectedDate ? format(selectedDate, "PPP", { locale: enIE }) : <span>Select a date</span>}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
@@ -199,7 +199,7 @@ export function WorkTracker() {
                   selected={selectedDate}
                   onSelect={(date) => date && setSelectedDate(date)}
                   initialFocus
-                  locale={enUS}
+                  locale={enIE}
                 />
               </PopoverContent>
             </Popover>
@@ -259,7 +259,7 @@ export function WorkTracker() {
           <div className="space-y-2">
             {recentEntries.map((entry, index) => (
               <div key={index} className="flex items-center justify-between p-3 border rounded-md">
-                <span className="font-medium">{format(entry.date, "EEEE, MM/dd", { locale: enUS })}</span>
+                <span className="font-medium">{format(entry.date, "EEEE, MM/dd", { locale: enIE })}</span>
                 {entry.location ? (
                   <Badge
                     variant="outline"

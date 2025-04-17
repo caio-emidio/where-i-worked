@@ -12,7 +12,7 @@ import {
   isWithinInterval,
   subMonths,
 } from "date-fns"
-import { enUS } from "date-fns/locale"
+import { enIE } from "date-fns/locale"
 import { Building2, Home, CalendarIcon, CalendarPlus2Icon as CalendarIcon2 } from "lucide-react"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
@@ -109,8 +109,8 @@ export function WorkStats() {
     switch (periodType) {
       case "week":
         return {
-          start: startOfWeek(today, { locale: enUS }),
-          end: endOfWeek(today, { locale: enUS }),
+          start: startOfWeek(today, { locale: enIE }),
+          end: endOfWeek(today, { locale: enIE }),
         }
       case "month":
         return {
@@ -131,8 +131,8 @@ export function WorkStats() {
         )
       default:
         return {
-          start: startOfWeek(today, { locale: enUS }),
-          end: endOfWeek(today, { locale: enUS }),
+          start: startOfWeek(today, { locale: enIE }),
+          end: endOfWeek(today, { locale: enIE }),
         }
     }
   }
@@ -224,7 +224,7 @@ export function WorkStats() {
                           selected={customStartDate}
                           onSelect={setCustomStartDate}
                           initialFocus
-                          locale={enUS}
+                          locale={enIE}
                         />
                       </PopoverContent>
                     </Popover>
@@ -245,7 +245,7 @@ export function WorkStats() {
                           selected={customEndDate}
                           onSelect={setCustomEndDate}
                           initialFocus
-                          locale={enUS}
+                          locale={enIE}
                         />
                       </PopoverContent>
                     </Popover>
@@ -267,8 +267,8 @@ export function WorkStats() {
             <div>
               <div className="text-center mb-4">
                 <h3 className="text-sm font-medium text-muted-foreground">
-                  {format(dateRange.start, "MM/dd/yyyy", { locale: enUS })} -{" "}
-                  {format(dateRange.end, "MM/dd/yyyy", { locale: enUS })}
+                  {format(dateRange.start, "MM/dd/yyyy", { locale: enIE })} -{" "}
+                  {format(dateRange.end, "MM/dd/yyyy", { locale: enIE })}
                 </h3>
               </div>
 

@@ -111,9 +111,10 @@ export function WorkTracker() {
         if (error) throw error
       } else {
         // Create new entry
-        console.log(selectedDate, selectedDate.toLocaleDateString('en-IE'))
+        console.log(selectedDate, selectedDate.toLocaleDateString('en-IE', { year: 'numeric', month: '2-digit', day: '2-digit' }), selectedDate.toISOString())
+
         const { error } = await supabase.from("work_entries").insert({
-          date: selectedDate.toLocaleDateString('en-IE'),
+          date: selectedDate.toLocaleDateString('en-IE', { year: 'numeric', month: '2-digit', day: '2-digit' }),
           location: selectedLocation,
           user_id: user.id,
         })

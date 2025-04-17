@@ -111,6 +111,7 @@ export function WorkTracker() {
         if (error) throw error
       } else {
         // Create new entry
+        console.log(selectedDate, selectedDate.toISOString())
         const { error } = await supabase.from("work_entries").insert({
           date: selectedDate.toISOString(),
           location: selectedLocation,

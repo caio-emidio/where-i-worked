@@ -12,7 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { useToast } from "@/hooks/use-toast"
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
-import { createClientSupabaseClient } from "@/lib/supabase"
+import { createClientSupabaseClient } from "@/lib/supabase/client"
 import { useAuth } from "@/contexts/auth-context"
 
 type WorkLocation = "office" | "home" | "time_off" | null

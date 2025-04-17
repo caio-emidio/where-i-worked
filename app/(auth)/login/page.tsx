@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useRouter } from "next/navigation"
+import { useRouter } from 'next/router'
 import { useState } from "react"
 import Link from "next/link"
 import { Clock } from "lucide-react"

@@ -1,8 +1,6 @@
-import { createServerSupabaseClient } from "./lib/supabase";
-
+import { createMiddlewareClient } from "@supabase/auth-helpers-nextjs";
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { createMiddlewareClient } from "@supabase/auth-helpers-nextjs";
 
 export async function middleware(request: NextRequest) {
   const response = NextResponse.next();
@@ -16,11 +14,11 @@ export async function middleware(request: NextRequest) {
   const path = requestUrl.pathname;
 
   if (
-    requestUrl.pathname.startsWith("/_next") ||
-    requestUrl.pathname.startsWith("/api") ||
-    requestUrl.pathname.includes(".")
+    path.startsWith("/_next") ||
+    path.startsWith("/api") ||
+    path.includes(".")
   ) {
-    return NextResponse.next();
+    return response;
   }
 
   console.log("Middleware path:", path);
@@ -30,7 +28,7 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL("/dashboard", request.url));
   }
 
-  // TODO: Rayster will love to fix it later
+  // Uncomment to protect routes
   // if (!session && path.startsWith("/dashboard")) {
   //   return NextResponse.redirect(new URL("/login", request.url));
   // }

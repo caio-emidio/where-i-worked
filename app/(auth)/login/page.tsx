@@ -52,7 +52,8 @@ export default function LoginPage() {
 
         setTimeout(() => {
           // router.push("/dashboard")
-          window.location.reload()
+          // window.location.reload()
+          window.location.href="/dashboard"
         }, 2000)
       }
     } finally {

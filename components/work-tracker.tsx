@@ -1,52 +1,68 @@
-"use client"
+"use client";
 
-import { useState, useEffect } from "react"
-import { Building2, Home, CalendarIcon, CalendarPlus2Icon as CalendarIcon2 } from "lucide-react"
-import { format, subDays, isSameDay } from "date-fns"
-import { enIE } from "date-fns/locale"
+import { useState, useEffect } from "react";
+import {
+  Building2,
+  Home,
+  CalendarIcon,
+  CalendarPlus2Icon as CalendarIcon2,
+} from "lucide-react";
+import { format, subDays, isSameDay } from "date-fns";
+import { enIE } from "date-fns/locale";
 
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Calendar } from "@/components/ui/calendar"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { useToast } from "@/hooks/use-toast"
-import { Badge } from "@/components/ui/badge"
-import { cn } from "@/lib/utils"
-import { createClientSupabaseClient } from "@/lib/supabase/client"
-import { useAuth } from "@/contexts/auth-context"
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Calendar } from "@/components/ui/calendar";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { useToast } from "@/hooks/use-toast";
+import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
+import { createClientSupabaseClient } from "@/lib/supabase/client";
+import { useAuth } from "@/contexts/auth-context";
 
-type WorkLocation = "office" | "home" | "time_off" | null
+type WorkLocation = "office" | "home" | "time_off" | null;
 
 interface WorkEntry {
-  id?: string
-  date: Date
-  location: WorkLocation
-  user_id?: string
+  id?: string;
+  date: Date;
+  location: WorkLocation;
+  user_id?: string;
 }
 
 export function WorkTracker() {
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date())
-  const [selectedLocation, setSelectedLocation] = useState<WorkLocation>(null)
-  const [workEntries, setWorkEntries] = useState<WorkEntry[]>([])
-  const [isLoading, setIsLoading] = useState(false)
-  const { toast } = useToast()
-  const { user } = useAuth()
-  const supabase = createClientSupabaseClient()
+  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
+  const [selectedLocation, setSelectedLocation] = useState<WorkLocation>(null);
+  const [workEntries, setWorkEntries] = useState<WorkEntry[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const { toast } = useToast();
+  const { user } = useAuth();
+  const supabase = createClientSupabaseClient();
 
   // Load entries from Supabase on component mount
   useEffect(() => {
     const fetchEntries = async () => {
-      if (!user) return
+      if (!user) return;
 
       try {
         const { data, error } = await supabase
           .from("work_entries")
           .select("*")
           .eq("user_id", user.id)
-          .order("date", { ascending: false })
+          .order("date", { ascending: false });
 
         if (error) {
-          throw error
+          throw error;
         }
 
         if (data) {
@@ -54,50 +70,54 @@ export function WorkTracker() {
             data.map((entry) => ({
               ...entry,
               date: new Date(entry.date),
-            })),
-          )
+            }))
+          );
         }
       } catch (error) {
-        console.error("Error fetching work entries:", error)
+        console.error("Error fetching work entries:", error);
         toast({
           title: "Error loading records",
           description: "Could not load your work records.",
           variant: "destructive",
-        })
+        });
       }
-    }
+    };
 
-    fetchEntries()
-  }, [user, supabase, toast])
+    fetchEntries();
+  }, [user, supabase, toast]);
 
   // Check if there's an entry for the selected date
   useEffect(() => {
-    const existingEntry = workEntries.find((entry) => isSameDay(entry.date, selectedDate))
+    const existingEntry = workEntries.find((entry) =>
+      isSameDay(entry.date, selectedDate)
+    );
 
     if (existingEntry) {
-      setSelectedLocation(existingEntry.location)
+      setSelectedLocation(existingEntry.location);
     } else {
-      setSelectedLocation(null)
+      setSelectedLocation(null);
     }
-  }, [selectedDate, workEntries])
+  }, [selectedDate, workEntries]);
 
   const saveEntry = async () => {
-    if (!user) return
+    if (!user) return;
 
     if (!selectedLocation) {
       toast({
         title: "Select a location",
         description: "Please select office, home, or time off before saving.",
         variant: "destructive",
-      })
-      return
+      });
+      return;
     }
 
-    setIsLoading(true)
+    setIsLoading(true);
 
     try {
       // Check if there's an existing entry for this date
-      const existingEntry = workEntries.find((entry) => isSameDay(entry.date, selectedDate))
+      const existingEntry = workEntries.find((entry) =>
+        isSameDay(entry.date, selectedDate)
+      );
 
       if (existingEntry) {
         // Update existing entry
@@ -106,20 +126,29 @@ export function WorkTracker() {
           .update({
             location: selectedLocation,
           })
-          .eq("id", existingEntry.id)
+          .eq("id", existingEntry.id);
 
-        if (error) throw error
+        if (error) throw error;
       } else {
         // Create new entry
-        console.log(selectedDate, selectedDate.toLocaleDateString('en-IE', { year: 'numeric', month: '2-digit', day: '2-digit' }), selectedDate.toISOString())
+
+        // Extract local date parts
+        const year = selectedDate.getFullYear();
+        const month = selectedDate.getMonth();
+        const day = selectedDate.getDate();
+
+        // Build a new Date at 23:00:00 UTC
+        const fixedUTCDate = new Date(Date.UTC(year, month, day, 0, 0, 0));
+
+        console.log(fixedUTCDate.toISOString());
 
         const { error } = await supabase.from("work_entries").insert({
-          date: selectedDate.toLocaleDateString('en-IE', { year: 'numeric', month: '2-digit', day: '2-digit' }),
+          date: fixedUTCDate.toISOString(),
           location: selectedLocation,
           user_id: user.id,
-        })
+        });
 
-        if (error) throw error
+        if (error) throw error;
       }
 
       // Refresh entries after save
@@ -127,61 +156,69 @@ export function WorkTracker() {
         .from("work_entries")
         .select("*")
         .eq("user_id", user.id)
-        .order("date", { ascending: false })
+        .order("date", { ascending: false });
 
-      if (error) throw error
+      if (error) throw error;
 
       if (data) {
         setWorkEntries(
           data.map((entry) => ({
             ...entry,
             date: new Date(entry.date),
-          })),
-        )
+          }))
+        );
       }
 
-      let locationText = ""
-      if (selectedLocation === "office") locationText = "at the office"
-      else if (selectedLocation === "home") locationText = "from home"
-      else if (selectedLocation === "time_off") locationText = "as time off (PTO/Sick/Holiday)"
+      let locationText = "";
+      if (selectedLocation === "office") locationText = "at the office";
+      else if (selectedLocation === "home") locationText = "from home";
+      else if (selectedLocation === "time_off")
+        locationText = "as time off (PTO/Sick/Holiday)";
 
       toast({
         title: "Record saved",
-        description: `You marked ${format(selectedDate, "MM/dd/yyyy")} ${locationText}.`,
-      })
+        description: `You marked ${format(
+          selectedDate,
+          "MM/dd/yyyy"
+        )} ${locationText}.`,
+      });
     } catch (error) {
-      console.error("Error saving work entry:", error)
+      console.error("Error saving work entry:", error);
       toast({
         title: "Error saving record",
         description: "Could not save your work record.",
         variant: "destructive",
-      })
+      });
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   // Function to get recent entries (last 7 days)
   const getRecentEntries = () => {
-    const recentDays = Array.from({ length: 7 }, (_, i) => subDays(new Date(), i))
+    const recentDays = Array.from({ length: 7 }, (_, i) =>
+      subDays(new Date(), i)
+    );
 
     return recentDays.map((day) => {
-      const entry = workEntries.find((e) => isSameDay(e.date, day))
+      const entry = workEntries.find((e) => isSameDay(e.date, day));
       return {
         date: day,
         location: entry?.location || null,
-      }
-    })
-  }
+      };
+    });
+  };
 
-  const recentEntries = getRecentEntries()
+  const recentEntries = getRecentEntries();
 
   return (
     <div className="space-y-6">
       <Card>
         <CardHeader>
           <CardTitle>Record Location</CardTitle>
-          <CardDescription>Select the date and where you worked</CardDescription>
+          <CardDescription>
+            Select the date and where you worked
+          </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex justify-center">
@@ -189,10 +226,17 @@ export function WorkTracker() {
               <PopoverTrigger asChild>
                 <Button
                   variant={"outline"}
-                  className={cn("w-full justify-start text-left font-normal", !selectedDate && "text-muted-foreground")}
+                  className={cn(
+                    "w-full justify-start text-left font-normal",
+                    !selectedDate && "text-muted-foreground"
+                  )}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
-                  {selectedDate ? format(selectedDate, "PPP", { locale: enIE }) : <span>Select a date</span>}
+                  {selectedDate ? (
+                    format(selectedDate, "PPP", { locale: enIE })
+                  ) : (
+                    <span>Select a date</span>
+                  )}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
@@ -212,7 +256,8 @@ export function WorkTracker() {
               variant="outline"
               className={cn(
                 "h-24 flex flex-col items-center justify-center gap-2",
-                selectedLocation === "office" && "bg-primary text-primary-foreground",
+                selectedLocation === "office" &&
+                  "bg-primary text-primary-foreground"
               )}
               onClick={() => setSelectedLocation("office")}
             >
@@ -224,7 +269,8 @@ export function WorkTracker() {
               variant="outline"
               className={cn(
                 "h-24 flex flex-col items-center justify-center gap-2",
-                selectedLocation === "home" && "bg-yellow-500 hover:bg-yellow-600 text-black dark:text-white",
+                selectedLocation === "home" &&
+                  "bg-yellow-500 hover:bg-yellow-600 text-black dark:text-white"
               )}
               onClick={() => setSelectedLocation("home")}
             >
@@ -236,7 +282,8 @@ export function WorkTracker() {
               variant="outline"
               className={cn(
                 "h-24 flex flex-col items-center justify-center gap-2",
-                selectedLocation === "time_off" && "bg-blue-500 hover:bg-blue-600 text-white",
+                selectedLocation === "time_off" &&
+                  "bg-blue-500 hover:bg-blue-600 text-white"
               )}
               onClick={() => setSelectedLocation("time_off")}
             >
@@ -260,8 +307,13 @@ export function WorkTracker() {
         <CardContent>
           <div className="space-y-2">
             {recentEntries.map((entry, index) => (
-              <div key={index} className="flex items-center justify-between p-3 border rounded-md">
-                <span className="font-medium">{format(entry.date, "EEEE, MM/dd", { locale: enIE })}</span>
+              <div
+                key={index}
+                className="flex items-center justify-between p-3 border rounded-md"
+              >
+                <span className="font-medium">
+                  {format(entry.date, "EEEE, MM/dd", { locale: enIE })}
+                </span>
                 {entry.location ? (
                   <Badge
                     variant="outline"
@@ -270,8 +322,8 @@ export function WorkTracker() {
                       entry.location === "office"
                         ? "bg-primary/10 text-primary border-primary/20"
                         : entry.location === "home"
-                          ? "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border-yellow-500/20"
-                          : "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20",
+                        ? "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border-yellow-500/20"
+                        : "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20"
                     )}
                   >
                     {entry.location === "office" ? (
@@ -292,7 +344,9 @@ export function WorkTracker() {
                     )}
                   </Badge>
                 ) : (
-                  <span className="text-muted-foreground text-sm">Not recorded</span>
+                  <span className="text-muted-foreground text-sm">
+                    Not recorded
+                  </span>
                 )}
               </div>
             ))}
@@ -300,5 +354,5 @@ export function WorkTracker() {
         </CardContent>
       </Card>
     </div>
-  )
+  );
 }

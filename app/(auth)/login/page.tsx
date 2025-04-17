@@ -1,7 +1,7 @@
 "use client"
 
 import type React from "react"
-import { useRouter } from 'next/router'
+import { useRouter } from "next/router"
 import { useState } from "react"
 import Link from "next/link"
 import { Clock } from "lucide-react"
@@ -40,33 +40,14 @@ export default function LoginPage() {
 
       if (success) {
         console.log("Login successful in form handler")
+
         toast({
           title: "Login successful",
           description: "Welcome back!",
         })
-        try {
-          // TODO: Rayter will enjoy to fix it in the future. :D
 
-          window.location.href = "/dashboard"
-          // const router = useRouter()
+        window.location.href = "/dashboard"
 
-          // router.push("/dashboard")
-    
-        } catch (error) {
-          console.log(error)          
-        }
-        
-        // Let the middleware handle the redirect
-        // Just reload the page to trigger middleware
-        // window.location.reload()
-
-        // setTimeout(() => {
-        //   // router.push("/dashboard/dashboard")
-        //   window.location.href = "/dashboard"
-        //   // window.location.reload()
-        //   // window.location.href="/dashboard"
-        // }, 2000)
-        console.log("is inside success")
       }
     } finally {
       setIsLoading(false)

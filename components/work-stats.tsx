@@ -90,7 +90,40 @@ export function WorkStats() {
     }
 
     fetchEntries()
-  }, [user, supabase, toast])
+  }, [user, supabase, toast, customStartDate, customEndDate])
+
+  function getCustomQuarterRange(date = new Date()) {
+    const year = date.getFullYear();
+    const month = date.getMonth(); // 0-indexed: Jan = 0, Feb = 1, ...
+
+    let start, end;
+
+    if (month >= 1 && month <= 3) {
+      // Feb - Apr
+      start = new Date(year, 1, 1); // Feb 1
+      end = new Date(year, 3, 30);  // Apr 30
+    } else if (month >= 4 && month <= 6) {
+      // May - Jul
+      start = new Date(year, 4, 1); // May 1
+      end = new Date(year, 6, 31);  // Jul 31
+    } else if (month >= 7 && month <= 9) {
+      // Aug - Oct
+      start = new Date(year, 7, 1); // Aug 1
+      end = new Date(year, 9, 31);  // Oct 31
+    } else {
+      // Nov - Jan (special: Jan is next year)
+      if (month === 0) {
+        start = new Date(year - 1, 10, 1); // Nov 1 last year
+        end = new Date(year, 0, 31);       // Jan 31 this year
+      } else {
+        start = new Date(year, 10, 1);     // Nov 1 this year
+        end = new Date(year + 1, 0, 31);   // Jan 31 next year
+      }
+    }
+
+    return { start, end };
+  }
+
 
   // Set custom range when both dates are selected
   useEffect(() => {
@@ -118,9 +151,11 @@ export function WorkStats() {
           end: endOfMonth(today),
         }
       case "quarter":
+        const { start, end } = getCustomQuarterRange(today);
+        console.log("Custom Quarter Range:", start, end);
         return {
-          start: startOfQuarter(today),
-          end: endOfQuarter(today),
+          start: start,
+          end: end,
         }
       case "custom":
         return (
@@ -138,7 +173,7 @@ export function WorkStats() {
   }
 
   const dateRange = getCurrentDateRange()
-
+  // console.log("Date Range:", dateRange)
   // Calculate statistics - excluding time_off entries
   const calculateStats = () => {
     // Get all entries in the date range
@@ -277,7 +312,7 @@ export function WorkStats() {
                   <div className="flex justify-center mb-6">
                     {stats.totalWorkDays > 0 ? (
                       <div className="h-56 w-56">
-                        <ResponsiveContainer width="100%" height="100%">
+                        <ResponsiveContainer width="100%" height={250}>
                           <PieChart>
                             <Pie
                               data={chartData}
@@ -287,7 +322,9 @@ export function WorkStats() {
                               outerRadius={70}
                               fill="#8884d8"
                               dataKey="value"
-                              label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                              label={({ name, percent }) =>
+                                `${Math.round(percent * 100)}%`
+                              }
                             >
                               {chartData.map((entry, index) => (
                                 <Cell key={`cell-${index}`} fill={entry.color} />
@@ -297,15 +334,18 @@ export function WorkStats() {
                             <Legend />
                           </PieChart>
                         </ResponsiveContainer>
+
                       </div>
                     ) : (
                       <div className="text-center py-4">
-                        <p className="text-muted-foreground">No work days recorded in this period.</p>
-                        <p className="text-sm mt-2">Only time off days were recorded.</p>
+                        <Card className="overflow-hidden">
+                          <p className="text-muted-foreground">No work days recorded in this period.</p>
+                          <p className="text-sm mt-2">Only time off days were recorded.</p>
+                        </Card>
                       </div>
                     )}
                   </div>
-
+                  <Separator className="mb-4" />
                   <div className="grid grid-cols-3 gap-4">
                     <Card className="overflow-hidden">
                       <div className="h-2 bg-primary" />

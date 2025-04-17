@@ -137,10 +137,9 @@ export function WorkTracker() {
         const month = selectedDate.getMonth();
         const day = selectedDate.getDate();
 
-        // Build a new Date at 23:00:00 UTC
         const fixedUTCDate = new Date(Date.UTC(year, month, day, 0, 0, 0));
 
-        console.log(fixedUTCDate.toISOString());
+        // console.log(fixedUTCDate.toISOString());
 
         const { error } = await supabase.from("work_entries").insert({
           date: fixedUTCDate.toISOString(),
@@ -196,10 +195,10 @@ export function WorkTracker() {
 
   // Function to get recent entries (last 7 days)
   const getRecentEntries = () => {
-    const recentDays = Array.from({ length: 7 }, (_, i) =>
+    const recentDays = Array.from({ length: new Date().getDate() }, (_, i) =>
       subDays(new Date(), i)
     );
-
+    // console.log(recentDays);
     return recentDays.map((day) => {
       const entry = workEntries.find((e) => isSameDay(e.date, day));
       return {
@@ -257,7 +256,7 @@ export function WorkTracker() {
               className={cn(
                 "h-24 flex flex-col items-center justify-center gap-2",
                 selectedLocation === "office" &&
-                  "bg-primary text-primary-foreground"
+                "bg-primary text-primary-foreground"
               )}
               onClick={() => setSelectedLocation("office")}
             >
@@ -270,7 +269,7 @@ export function WorkTracker() {
               className={cn(
                 "h-24 flex flex-col items-center justify-center gap-2",
                 selectedLocation === "home" &&
-                  "bg-yellow-500 hover:bg-yellow-600 text-black dark:text-white"
+                "bg-yellow-500 hover:bg-yellow-600 text-black dark:text-white"
               )}
               onClick={() => setSelectedLocation("home")}
             >
@@ -283,7 +282,7 @@ export function WorkTracker() {
               className={cn(
                 "h-24 flex flex-col items-center justify-center gap-2",
                 selectedLocation === "time_off" &&
-                  "bg-blue-500 hover:bg-blue-600 text-white"
+                "bg-blue-500 hover:bg-blue-600 text-white"
               )}
               onClick={() => setSelectedLocation("time_off")}
             >
@@ -302,7 +301,7 @@ export function WorkTracker() {
       <Card>
         <CardHeader>
           <CardTitle>Recent Records</CardTitle>
-          <CardDescription>Your last 7 days of work</CardDescription>
+          <CardDescription>Your last {new Date().getDate()} days of work</CardDescription>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
@@ -322,8 +321,8 @@ export function WorkTracker() {
                       entry.location === "office"
                         ? "bg-primary/10 text-primary border-primary/20"
                         : entry.location === "home"
-                        ? "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border-yellow-500/20"
-                        : "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20"
+                          ? "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border-yellow-500/20"
+                          : "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20"
                     )}
                   >
                     {entry.location === "office" ? (

@@ -190,6 +190,7 @@ export function WorkTracker() {
                   className={cn("w-full justify-start text-left font-normal", !selectedDate && "text-muted-foreground")}
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
+                  {selectedDate}
                   {selectedDate ? format(selectedDate, "PPP", { locale: enIE }) : <span>Select a date</span>}
                 </Button>
               </PopoverTrigger>

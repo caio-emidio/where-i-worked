@@ -30,8 +30,12 @@ import { Badge } from "@/components/ui/badge";
 import { cn } from "@/lib/utils";
 import { createClientSupabaseClient } from "@/lib/supabase/client";
 import { useAuth } from "@/contexts/auth-context";
+import { getDistance } from 'geolib';
 
 type WorkLocation = "office" | "home" | "time_off" | null;
+const officeCoordinates = [{ latitude: 53.347807, longitude: -6.275438 }, { latitude: 53.349233, longitude: -6.245408 }]; // Example coordinates for your office
+const geofenceRadius = 100; // Geofence radius in meters
+
 
 interface WorkEntry {
   id?: string;
@@ -45,9 +49,11 @@ export function WorkTracker() {
   const [selectedLocation, setSelectedLocation] = useState<WorkLocation>(null);
   const [workEntries, setWorkEntries] = useState<WorkEntry[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [recentEntries, setRecentEntries] = useState<WorkEntry[]>([]);
   const { toast } = useToast();
   const { user } = useAuth();
   const supabase = createClientSupabaseClient();
+
 
   // Load entries from Supabase on component mount
   useEffect(() => {
@@ -84,7 +90,80 @@ export function WorkTracker() {
     };
 
     fetchEntries();
-  }, [user, supabase, toast]);
+  }, []);
+
+  useEffect(() => {
+    let lastUpdated = 0; // Store the timestamp of the last update
+    let lastLocation = ""; // Store the last location state ("office" or "home")
+    let lastDistance = 0; // Store the last distance from office
+
+    if (navigator.geolocation) {
+      const watchId = navigator.geolocation.watchPosition(
+        (position) => {
+          const { latitude, longitude } = position.coords;
+          const distances = officeCoordinates.map((officeCoords) =>
+            getDistance({ latitude, longitude }, officeCoords)
+          );
+          const minDistance = Math.min(...distances);
+          console.log("Current min distance from office:", minDistance, "meters");
+
+          // Check if it's been more than 10 seconds and if the location has actually changed
+          const now = Date.now();
+          if (now - lastUpdated > 10000 || minDistance !== lastDistance) {
+            if (minDistance <= geofenceRadius) {
+              // Only update if the location changed (from home to office)
+              if (lastLocation !== "office") {
+                console.log("User is at the office");
+                toast({
+                  title: "You are at the office",
+                  description: "Your location has been automatically set to 'Office'.",
+                });
+                setSelectedLocation("office");
+                lastLocation = "office";
+              }
+            } else {
+              // Only update if the location changed (from office to home)
+              if (lastLocation !== "home") {
+                console.log("User is outside the office");
+                toast({
+                  title: "You are outside the office",
+                  description: "Your location has been automatically set to 'Home'.",
+                });
+                setSelectedLocation("home");
+                lastLocation = "home";
+              }
+            }
+
+            // Update the stored distance and last update timestamp
+            lastDistance = minDistance;
+            lastUpdated = now;
+          }
+        },
+        (error) => {
+          console.error("Geolocation error:", error);
+          toast({
+            title: "Error",
+            description: "Could not retrieve your location.",
+            variant: "destructive",
+          });
+        },
+        {
+          enableHighAccuracy: true,
+          timeout: 10000, // 10 seconds
+          maximumAge: 0,
+        }
+      );
+
+      // Clean up the geolocation watch on component unmount
+      return () => {
+        navigator.geolocation.clearWatch(watchId);
+      };
+    } else {
+      console.error("Geolocation is not supported by this browser.");
+    }
+  }, []);
+
+
 
   // Check if there's an entry for the selected date
   useEffect(() => {
@@ -208,7 +287,10 @@ export function WorkTracker() {
     });
   };
 
-  const recentEntries = getRecentEntries();
+  useEffect(() => {
+    setRecentEntries(getRecentEntries());
+  }, [workEntries]);
+
 
   return (
     <div className="space-y-6">

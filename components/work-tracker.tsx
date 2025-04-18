@@ -106,7 +106,7 @@ export function WorkTracker() {
     const existingEntry = workEntries.find((entry) =>
       isSameDay(entry.date, selectedDate)
     );
-    if (existingEntry) {
+    if (existingEntry && selectedDate !== new Date()) {
       console.log("Entry already exists for this date:", selectedDate);
       return;
     }
@@ -142,7 +142,7 @@ export function WorkTracker() {
           }
         },
         (error) => {
-          console.error("Geolocation error:", error);
+          console.log("Geolocation error:", error);
           // toast({
           //   title: "Error",
           //   description: "Could not retrieve your location.",
@@ -421,10 +421,10 @@ export function WorkTracker() {
                     time_off: timeOffDates,
                   }}
                   modifiersClassNames={{
-                    office: "bg-purple-500 text-white",
-                    home: "bg-orange-400 text-white",
-                    time_off: "bg-blue-500 text-white",
-                    selected: "bg-gray-500 text-black",
+                    office: "bg-purple-500 hover:bg-purple-600 text-black dark:text-white",
+                    home: "bg-yellow-500 hover:bg-yellow-600 text-black dark:text-white",
+                    time_off: "bg-blue-500 hover:bg-blue-600 text-black dark:text-white",
+                    selected: "bg-gray-500 hover:bg-gray-600 text-black dark:text-white",
                   }}
                 />
               </PopoverContent>

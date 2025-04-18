@@ -175,6 +175,64 @@ export function WorkTracker() {
     }
   }, [selectedDate, workEntries]);
 
+  const deleteEntry = async () => {
+    if (!user) return;
+    if (!selectedDate) return;
+    setIsLoading(true);
+    try {
+      const existingEntry = workEntries.find((entry) =>
+        isSameDay(entry.date, selectedDate)
+      );
+      if (existingEntry) {
+        const { error: deleteError } = await supabase
+          .from("work_entries")
+          .delete()
+          .eq("id", existingEntry.id);
+        if (deleteError) throw deleteError;
+        // Refresh entries after delete
+        const { data, error: fetchError } = await supabase
+          .from("work_entries")
+          .select("*")
+          .eq("user_id", user.id)
+          .order("date", { ascending: false });
+        if (fetchError) throw fetchError;
+        if (data) {
+          setWorkEntries(
+            data.map((entry) => ({
+              ...entry,
+              date: new Date(entry.date),
+            }))
+          );
+        }
+        setCalendarRenderKey((prev) => prev + 1);
+        toast({
+          title: "Record deleted",
+          description: `You deleted the record for ${format(
+            selectedDate,
+            "MM/dd/yyyy"
+          )}.`,
+        });
+      } else {
+        toast({
+          title: "No record found",
+          description: `No record found for ${format(
+            selectedDate,
+            "MM/dd/yyyy"
+          )}.`,
+        });
+      }
+    } catch (error) {
+      console.error("Error deleting work entry:", error);
+      toast({
+        title: "Error deleting record",
+        description: "Could not delete your work record.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const saveEntry = async () => {
     if (!user) return;
 
@@ -323,7 +381,7 @@ export function WorkTracker() {
 
 
   return (
-    <div className="space-y-6">
+    <div className="flex space-y-6 flex-col md:flex-row md:space-y-0 gap-2">
       <Card>
         <CardHeader>
           <CardTitle>Record Location</CardTitle>
@@ -414,14 +472,17 @@ export function WorkTracker() {
             </Button>
           </div>
         </CardContent>
-        <CardFooter>
+        <CardFooter className="flex gap-2">
           <Button onClick={saveEntry} className="w-full" disabled={isLoading}>
             {isLoading ? "Saving..." : "Save Record"}
+          </Button>
+          <Button variant="destructive" onClick={deleteEntry} className="w-full" disabled={isLoading}>
+            {isLoading ? "Saving..." : "Delete Record"}
           </Button>
         </CardFooter>
       </Card>
 
-      <Card>
+      <Card className="min-w-[60%]">
         <CardHeader>
           <CardTitle>Recent Records</CardTitle>
           <CardDescription>Your last {recentEntries.length} days of work</CardDescription>

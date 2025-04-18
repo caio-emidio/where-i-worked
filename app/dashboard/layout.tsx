@@ -84,7 +84,7 @@ export default function DashboardLayout({
         </div>
       </header>
       <main className="flex-1">
-        <div className="container py-6 max-w-md mx-auto">{children}</div>
+        <div className="container py-6 max-w-md md:max-w-full mx-auto">{children}</div>
       </main>
     </div>
   )

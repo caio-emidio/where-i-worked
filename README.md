@@ -1,4 +1,4 @@
-# Mobile app with tracker
+# Mobile app with tracker 
 
 *Automatically synced with your [v0.dev](https://v0.dev) deployments*
 

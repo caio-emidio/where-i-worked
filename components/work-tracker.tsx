@@ -8,7 +8,7 @@ import {
   CalendarPlus2Icon as CalendarIcon2,
 } from "lucide-react";
 import { format, subDays, isSameDay } from "date-fns";
-import { enIE } from "date-fns/locale";
+import { enIE, se } from "date-fns/locale";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -111,7 +111,13 @@ export function WorkTracker() {
       return;
     }
 
-    if (navigator.geolocation && selectedDate === new Date()) {
+    if(selectedDate.toDateString() !== new Date().toDateString()){
+      console.log("Selected date is not today:", selectedDate);
+      return;
+    }
+
+
+    if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;

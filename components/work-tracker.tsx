@@ -102,10 +102,7 @@ export function WorkTracker() {
   }, []);
 
   useEffect(() => {
-    let lastUpdated = 0; // Store the timestamp of the last update
-    let lastLocation = ""; // Store the last location state ("office" or "home")
-    let lastDistance = 0; // Store the last distance from office
-
+    if (!user) return;
     const existingEntry = workEntries.find((entry) =>
       isSameDay(entry.date, selectedDate)
     );
@@ -114,9 +111,8 @@ export function WorkTracker() {
       return;
     }
 
-
     if (navigator.geolocation) {
-      const watchId = navigator.geolocation.watchPosition(
+      navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
           const distances = officeCoordinates.map((officeCoords) =>
@@ -126,35 +122,23 @@ export function WorkTracker() {
           console.log("Current min distance from office:", minDistance, "meters");
 
           // Check if it's been more than 10 seconds and if the location has actually changed
-          const now = Date.now();
-          if (now - lastUpdated > 10000 || minDistance !== lastDistance) {
-            if (minDistance <= geofenceRadius) {
-              // Only update if the location changed (from home to office)
-              if (lastLocation !== "office") {
-                console.log("User is at the office");
-                toast({
-                  title: "You are at the office",
-                  description: "Consider setting your location to 'Office'.",
-                });
-                // setSelectedLocation("office");
-                lastLocation = "office";
-              }
-            } else {
-              // Only update if the location changed (from office to home)
-              if (lastLocation !== "home") {
-                console.log("User is outside the office");
-                toast({
-                  title: "You are outside the office",
-                  description: "Consider setting your location to 'Home'.",
-                });
-                // setSelectedLocation("home");
-                lastLocation = "home";
-              }
-            }
 
-            // Update the stored distance and last update timestamp
-            lastDistance = minDistance;
-            lastUpdated = now;
+          if (minDistance <= geofenceRadius) {
+            // Only update if the location changed (from home to office)
+            console.log("User is at the office");
+            toast({
+              title: "You are at the office",
+              description: "Consider setting your location to 'Office'.",
+            });
+            // setSelectedLocation("office");
+          } else {
+            // Only update if the location changed (from office to home)
+            console.log("User is outside the office");
+            toast({
+              title: "You are outside the office",
+              description: "Consider setting your location to 'Home'.",
+            });
+            // setSelectedLocation("home");
           }
         },
         (error) => {
@@ -171,11 +155,6 @@ export function WorkTracker() {
           maximumAge: 0,
         }
       );
-
-      // Clean up the geolocation watch on component unmount
-      return () => {
-        navigator.geolocation.clearWatch(watchId);
-      };
     } else {
       console.error("Geolocation is not supported by this browser.");
     }
@@ -335,10 +314,10 @@ export function WorkTracker() {
         .map((entry) => entry.date)
     );
 
-    console.log("Updating dates");
-    console.log("Office Dates:", officeDates);
-    console.log("Home Dates:", homeDates);
-    console.log("Time Off Dates:", timeOffDates);
+    // console.log("Updating dates");
+    // console.log("Office Dates:", officeDates);
+    // console.log("Home Dates:", homeDates);
+    // console.log("Time Off Dates:", timeOffDates);
 
   }, [workEntries]);
 
@@ -376,7 +355,7 @@ export function WorkTracker() {
                   key={calendarRenderKey} // Re-render calendar when work entries change
                   mode="single"
                   onSelect={(date) => date && setSelectedDate(date)}
-                  initialFocus
+                  selected={selectedDate}
                   locale={enIE}
                   modifiers={{
                     office: officeDates,

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import {
   Building2,
   Home,
@@ -50,6 +50,14 @@ export function WorkTracker() {
   const [workEntries, setWorkEntries] = useState<WorkEntry[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [recentEntries, setRecentEntries] = useState<WorkEntry[]>([]);
+
+  const [officeDates, setOfficeDates] = useState<Date[]>([]); // Store office dates
+  const [homeDates, setHomeDates] = useState<Date[]>([]); // Store home dates
+  const [timeOffDates, setTimeOffDates] = useState<Date[]>([]); // Store time off dates
+
+  const [calendarRenderKey, setCalendarRenderKey] = useState(0);
+
+
   const { toast } = useToast();
   const { user } = useAuth();
   const supabase = createClientSupabaseClient();
@@ -79,6 +87,7 @@ export function WorkTracker() {
             }))
           );
         }
+
       } catch (error) {
         console.error("Error fetching work entries:", error);
         toast({
@@ -96,6 +105,15 @@ export function WorkTracker() {
     let lastUpdated = 0; // Store the timestamp of the last update
     let lastLocation = ""; // Store the last location state ("office" or "home")
     let lastDistance = 0; // Store the last distance from office
+
+    const existingEntry = workEntries.find((entry) =>
+      isSameDay(entry.date, selectedDate)
+    );
+    if (existingEntry) {
+      console.log("Entry already exists for this date:", selectedDate);
+      return;
+    }
+
 
     if (navigator.geolocation) {
       const watchId = navigator.geolocation.watchPosition(
@@ -116,9 +134,9 @@ export function WorkTracker() {
                 console.log("User is at the office");
                 toast({
                   title: "You are at the office",
-                  description: "Your location has been automatically set to 'Office'.",
+                  description: "Consider setting your location to 'Office'.",
                 });
-                setSelectedLocation("office");
+                // setSelectedLocation("office");
                 lastLocation = "office";
               }
             } else {
@@ -127,9 +145,9 @@ export function WorkTracker() {
                 console.log("User is outside the office");
                 toast({
                   title: "You are outside the office",
-                  description: "Your location has been automatically set to 'Home'.",
+                  description: "Consider setting your location to 'Home'.",
                 });
-                setSelectedLocation("home");
+                // setSelectedLocation("home");
                 lastLocation = "home";
               }
             }
@@ -141,11 +159,11 @@ export function WorkTracker() {
         },
         (error) => {
           console.error("Geolocation error:", error);
-          toast({
-            title: "Error",
-            description: "Could not retrieve your location.",
-            variant: "destructive",
-          });
+          // toast({
+          //   title: "Error",
+          //   description: "Could not retrieve your location.",
+          //   variant: "destructive",
+          // });
         },
         {
           enableHighAccuracy: true,
@@ -161,7 +179,7 @@ export function WorkTracker() {
     } else {
       console.error("Geolocation is not supported by this browser.");
     }
-  }, []);
+  }, [selectedDate]);
 
 
 
@@ -247,6 +265,8 @@ export function WorkTracker() {
         );
       }
 
+      setCalendarRenderKey((prev) => prev + 1);
+
       let locationText = "";
       if (selectedLocation === "office") locationText = "at the office";
       else if (selectedLocation === "home") locationText = "from home";
@@ -277,13 +297,13 @@ export function WorkTracker() {
     const recentDays = Array.from({ length: new Date().getDate() }, (_, i) =>
       subDays(new Date(), i)
     );
-  
+
     // Filter out weekends (Saturday = 6, Sunday = 0)
     const workdays = recentDays.filter((day) => {
       const dayOfWeek = day.getDay();
       return dayOfWeek !== 0 && dayOfWeek !== 6; // Exclude Sunday (0) and Saturday (6)
     });
-  
+
     return workdays.map((day) => {
       const entry = workEntries.find((e) => isSameDay(e.date, day));
       return {
@@ -292,10 +312,34 @@ export function WorkTracker() {
       };
     });
   };
-  
+
 
   useEffect(() => {
     setRecentEntries(getRecentEntries());
+  }, [workEntries]);
+
+  useEffect(() => {
+    setOfficeDates(
+      workEntries
+        .filter((entry) => entry.location === "office")
+        .map((entry) => entry.date)
+    );
+    setHomeDates(
+      workEntries
+        .filter((entry) => entry.location === "home")
+        .map((entry) => entry.date)
+    );
+    setTimeOffDates(
+      workEntries
+        .filter((entry) => entry.location === "time_off")
+        .map((entry) => entry.date)
+    );
+
+    console.log("Updating dates");
+    console.log("Office Dates:", officeDates);
+    console.log("Home Dates:", homeDates);
+    console.log("Time Off Dates:", timeOffDates);
+
   }, [workEntries]);
 
 
@@ -329,11 +373,22 @@ export function WorkTracker() {
               </PopoverTrigger>
               <PopoverContent className="w-auto p-0" align="start">
                 <Calendar
+                  key={calendarRenderKey} // Re-render calendar when work entries change
                   mode="single"
-                  selected={selectedDate}
                   onSelect={(date) => date && setSelectedDate(date)}
                   initialFocus
                   locale={enIE}
+                  modifiers={{
+                    office: officeDates,
+                    home: homeDates,
+                    time_off: timeOffDates,
+                  }}
+                  modifiersClassNames={{
+                    office: "bg-purple-500 text-white",
+                    home: "bg-orange-400 text-white",
+                    time_off: "bg-blue-500 text-white",
+                    selected: "bg-gray-500 text-black",
+                  }}
                 />
               </PopoverContent>
             </Popover>

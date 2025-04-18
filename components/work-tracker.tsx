@@ -106,12 +106,12 @@ export function WorkTracker() {
     const existingEntry = workEntries.find((entry) =>
       isSameDay(entry.date, selectedDate)
     );
-    if (existingEntry && selectedDate !== new Date()) {
+    if (existingEntry) {
       console.log("Entry already exists for this date:", selectedDate);
       return;
     }
 
-    if (navigator.geolocation) {
+    if (navigator.geolocation && selectedDate === new Date()) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;

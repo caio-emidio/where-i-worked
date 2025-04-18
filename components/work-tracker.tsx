@@ -142,7 +142,7 @@ export function WorkTracker() {
           }
         },
         (error) => {
-          console.error("Geolocation error:", error);
+          console.log("Geolocation error:", error);
           // toast({
           //   title: "Error",
           //   description: "Could not retrieve your location.",

@@ -438,10 +438,10 @@ export function WorkTracker() {
                     time_off: timeOffDates,
                   }}
                   modifiersClassNames={{
-                    office: "bg-purple-500 hover:bg-purple-600 text-black dark:text-white",
-                    home: "bg-yellow-500 hover:bg-yellow-600 text-black dark:text-white",
-                    time_off: "bg-blue-500 hover:bg-blue-600 text-black dark:text-white",
-                    selected: "bg-gray-500 hover:bg-gray-600 text-black dark:text-white",
+                    office: "bg-purple-500/80 bg-transparent hover:bg-purple-600/60 text-black dark:text-white",
+                    home: "bg-yellow-500/80 hover:bg-yellow-600/60 text-black dark:text-white",
+                    time_off: "bg-blue-500/80 hover:bg-blue-600/60 text-black dark:text-white",
+                    selected: "bg-gray-500/80 hover:bg-gray-600/60 text-black dark:text-white",
                   }}
                 />
               </PopoverContent>

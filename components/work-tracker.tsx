@@ -399,7 +399,7 @@ export function WorkTracker() {
 
   return (
     <div className="md:container flex flex-col md:flex-row gap-6">
-      <Card className="md:w-1/3">
+      <Card className="md:w-1/2">
         <CardHeader>
           <CardTitle>Record Location</CardTitle>
           <CardDescription>
@@ -485,29 +485,30 @@ export function WorkTracker() {
               onClick={() => setSelectedLocation("time_off")}
             >
               <CalendarIcon2 className="h-6 w-6" />
-              <span className="text-xs text-center whitespace-normal break-words">PTO/Sick/Holiday</span>
+              <span className="text-xs text-center whitespace-normal break-words">PTO/ Sick/ Holiday</span>
             </Button>
           </div>
         </CardContent>
-        <CardFooter className="flex flex-col gap-2">
-          <Button onClick={saveEntry} className="w-full bg-green-600 hover:bg-green-700 text-white flex items-center justify-center" disabled={isLoading}>
-            {loadingAction === "save"  ? "Saving..." : (
-              <>
-                <Save className="mr-2 h-4 w-4" />
-                Save Record
-              </>
-            )}
-          </Button>
+        <CardFooter>
+          <div className="grid grid-cols-2 gap-4 w-full">
+            <Button onClick={saveEntry} className="bg-green-600 hover:bg-green-700 text-white flex items-center justify-center whitespace-normal break-words" disabled={isLoading}>
+              {loadingAction === "save" ? "Saving..." : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  Save Record
+                </>
+              )}
+            </Button>
 
-          <Button onClick={deleteEntry} className="w-full bg-red-600 hover:bg-red-700 text-white flex items-center justify-center" disabled={isLoading}>
-            {loadingAction === "delete"  ? "Deleting..." : (
-              <>
-                <Trash2  />
-                Delete Record
-              </>
-            )}
-          </Button>
-
+            <Button onClick={deleteEntry} className="bg-red-600 hover:bg-red-700 text-white flex items-center justify-center whitespace-normal break-words" disabled={isLoading}>
+              {loadingAction === "delete" ? "Deleting..." : (
+                <>
+                  <Trash2 />
+                  Delete Record
+                </>
+              )}
+            </Button>
+          </div>
         </CardFooter>
       </Card>
 

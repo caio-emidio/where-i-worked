@@ -6,6 +6,8 @@ import {
   Home,
   CalendarIcon,
   CalendarPlus2Icon as CalendarIcon2,
+  Save,
+  Trash2,
 } from "lucide-react";
 import { format, subDays, isSameDay } from "date-fns";
 import { enIE, se } from "date-fns/locale";
@@ -54,6 +56,8 @@ export function WorkTracker() {
   const [officeDates, setOfficeDates] = useState<Date[]>([]); // Store office dates
   const [homeDates, setHomeDates] = useState<Date[]>([]); // Store home dates
   const [timeOffDates, setTimeOffDates] = useState<Date[]>([]); // Store time off dates
+
+  const [loadingAction, setLoadingAction] = useState<"save" | "delete" | null>(null);
 
   const [calendarRenderKey, setCalendarRenderKey] = useState(0);
 
@@ -111,7 +115,7 @@ export function WorkTracker() {
       return;
     }
 
-    if(selectedDate.toDateString() !== new Date().toDateString()){
+    if (selectedDate.toDateString() !== new Date().toDateString()) {
       console.log("Selected date is not today:", selectedDate);
       return;
     }
@@ -184,7 +188,10 @@ export function WorkTracker() {
   const deleteEntry = async () => {
     if (!user) return;
     if (!selectedDate) return;
+
     setIsLoading(true);
+    setLoadingAction("delete");
+
     try {
       const existingEntry = workEntries.find((entry) =>
         isSameDay(entry.date, selectedDate)
@@ -236,6 +243,8 @@ export function WorkTracker() {
       });
     } finally {
       setIsLoading(false);
+      setLoadingAction(null);
+
     }
   };
 
@@ -252,6 +261,7 @@ export function WorkTracker() {
     }
 
     setIsLoading(true);
+    setLoadingAction("save");
 
     try {
       // Check if there's an existing entry for this date
@@ -332,6 +342,7 @@ export function WorkTracker() {
       });
     } finally {
       setIsLoading(false);
+      setLoadingAction(null);
     }
   };
 
@@ -443,7 +454,7 @@ export function WorkTracker() {
               className={cn(
                 "h-24 flex flex-col items-center justify-center gap-2",
                 selectedLocation === "office" &&
-                "bg-primary text-primary-foreground"
+                "bg-purple-600 hover:bg-purple-700 text-black dark:text-white"
               )}
               onClick={() => setSelectedLocation("office")}
             >
@@ -474,17 +485,29 @@ export function WorkTracker() {
               onClick={() => setSelectedLocation("time_off")}
             >
               <CalendarIcon2 className="h-6 w-6" />
-              <span className="text-xs text-center">PTO/Sick/Holiday</span>
+              <span className="text-xs text-center whitespace-normal break-words">PTO/Sick/Holiday</span>
             </Button>
           </div>
         </CardContent>
         <CardFooter className="flex gap-2">
-          <Button onClick={saveEntry} className="w-full" disabled={isLoading}>
-            {isLoading ? "Saving..." : "Save Record"}
+          <Button onClick={saveEntry} className="w-full bg-purple-600 hover:bg-purple-700 text-white flex items-center justify-center" disabled={isLoading}>
+            {loadingAction === "save"  ? "Saving..." : (
+              <>
+                <Save className="mr-2 h-4 w-4" />
+                Save Record
+              </>
+            )}
           </Button>
-          <Button variant="destructive" onClick={deleteEntry} className="w-full" disabled={isLoading}>
-            {isLoading ? "Saving..." : "Delete Record"}
+
+          <Button onClick={deleteEntry} className="w-full bg-red-600 hover:bg-red-700 text-white flex items-center justify-center" disabled={isLoading}>
+            {loadingAction === "delete"  ? "Deleting..." : (
+              <>
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete Record
+              </>
+            )}
           </Button>
+
         </CardFooter>
       </Card>
 

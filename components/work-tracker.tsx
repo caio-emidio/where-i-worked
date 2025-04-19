@@ -398,8 +398,8 @@ export function WorkTracker() {
 
 
   return (
-    <div className="flex space-y-6 flex-col md:flex-row md:space-y-0 gap-2">
-      <Card>
+    <div className="md:container flex flex-col md:flex-row gap-6">
+      <Card className="md:w-1/3">
         <CardHeader>
           <CardTitle>Record Location</CardTitle>
           <CardDescription>
@@ -511,7 +511,7 @@ export function WorkTracker() {
         </CardFooter>
       </Card>
 
-      <Card className="min-w-[60%]">
+      <Card className="md:w-2/3">
         <CardHeader>
           <CardTitle>Recent Records</CardTitle>
           <CardDescription>Your last {recentEntries.length} days of work</CardDescription>

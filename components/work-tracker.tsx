@@ -489,8 +489,8 @@ export function WorkTracker() {
             </Button>
           </div>
         </CardContent>
-        <CardFooter className="flex gap-2">
-          <Button onClick={saveEntry} className="w-full bg-purple-600 hover:bg-purple-700 text-white flex items-center justify-center" disabled={isLoading}>
+        <CardFooter className="flex flex-col gap-2">
+          <Button onClick={saveEntry} className="w-full bg-green-600 hover:bg-green-700 text-white flex items-center justify-center" disabled={isLoading}>
             {loadingAction === "save"  ? "Saving..." : (
               <>
                 <Save className="mr-2 h-4 w-4" />
@@ -502,7 +502,7 @@ export function WorkTracker() {
           <Button onClick={deleteEntry} className="w-full bg-red-600 hover:bg-red-700 text-white flex items-center justify-center" disabled={isLoading}>
             {loadingAction === "delete"  ? "Deleting..." : (
               <>
-                <Trash2 className="mr-2 h-4 w-4" />
+                <Trash2  />
                 Delete Record
               </>
             )}

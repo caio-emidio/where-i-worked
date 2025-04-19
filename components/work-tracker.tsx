@@ -106,7 +106,7 @@ export function WorkTracker() {
   }, []);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user || !workEntries || workEntries.length === 0) return;
     const existingEntry = workEntries.find((entry) =>
       isSameDay(entry.date, selectedDate)
     );

@@ -1,16 +1,15 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, use } from "react"
 import {
   format,
   startOfWeek,
   endOfWeek,
   startOfMonth,
   endOfMonth,
-  startOfQuarter,
-  endOfQuarter,
   isWithinInterval,
   subMonths,
+  addDays,
 } from "date-fns"
 import { enIE } from "date-fns/locale"
 import { Building2, Home, CalendarIcon, CalendarPlus2Icon as CalendarIcon2 } from "lucide-react"
@@ -160,7 +159,7 @@ export function WorkStats() {
       case "custom":
         return (
           customRange || {
-            start: startOfMonth(subMonths(today, 1)),
+            start: today,
             end: today,
           }
         )
@@ -172,6 +171,47 @@ export function WorkStats() {
     }
   }
 
+  // Validate date range, for every weekdays in the range, we must have a workentry
+  // If not, we should show a warning
+  useEffect(() => {
+    if (!dateRange?.start || !dateRange?.end || !workEntries || workEntries.length === 0) return;
+    const entriesInRange = workEntries.filter((entry) =>
+      isWithinInterval(entry.date, {
+        start: dateRange.start,
+        end: addDays(dateRange.end, 1),// add 1 day to include the end date
+      }),
+    )
+
+    const weekdays: Date[] = [];
+    let currentDate = new Date(dateRange.start);
+
+    while (currentDate <= dateRange.end) {
+      if (currentDate.getDay() !== 0 && currentDate.getDay() !== 6) {
+        weekdays.push(new Date(currentDate));
+      }
+      currentDate.setDate(currentDate.getDate() + 1);
+    }
+
+    // console.log("Weekdays:", weekdays)
+
+    const missingEntries = weekdays.filter(
+      (date) => !entriesInRange.some((entry) => entry.date.toDateString() === date.toDateString())
+    );
+
+    // console.log("Missing Entries:", missingEntries)
+
+    if (missingEntries.length > 0) {
+      // console.log("Entries:", entriesInRange)
+      toast({
+        title: "Missing Work Entries",
+        description: `You have ${missingEntries.length} missing work entries in the selected period ${dateRange.start.toDateString()} - ${dateRange.end.toDateString()}.`,
+        variant: "destructive",
+        duration: 5000,
+      });
+    }
+  }, [periodType, workEntries]);
+
+  // Get the current date range based on the selected period
   const dateRange = getCurrentDateRange()
   // console.log("Date Range:", dateRange)
   // Calculate statistics - excluding time_off entries
@@ -184,13 +224,16 @@ export function WorkStats() {
       }),
     )
 
+    // console.log("Entries in Range:", dateRange.start, dateRange.end, entriesInRange)
+
+    // validateDateRange(entriesInRange, dateRange);
+
     // Filter out time_off entries for statistics
     const workEntriesOnly = entriesInRange.filter((entry) => entry.location !== "time_off")
 
     const officeCount = workEntriesOnly.filter((entry) => entry.location === "office").length
     const homeCount = workEntriesOnly.filter((entry) => entry.location === "home").length
     const totalWorkDays = workEntriesOnly.length
-
     // Count time_off days separately (not included in percentages)
     const timeOffCount = entriesInRange.filter((entry) => entry.location === "time_off").length
     const totalDays = entriesInRange.length
@@ -208,6 +251,7 @@ export function WorkStats() {
       homePercentage,
     }
   }
+
 
   const stats = calculateStats()
 
@@ -347,7 +391,7 @@ export function WorkStats() {
                   </div>
                   <Separator className="mb-4" />
                   <div className="grid grid-cols-3 gap-4">
-                    <Card className="overflow-hidden">
+                    <Card className="overflow-hidden" onClick={() => { }}>
                       <div className="h-2 bg-primary" />
                       <CardContent className="p-4 pt-6 text-center">
                         <Building2 className="h-6 w-6 mx-auto mb-2 text-primary" />

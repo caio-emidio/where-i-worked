@@ -79,9 +79,10 @@ export function WorkStats() {
       } catch (error) {
         console.error("Error fetching work entries:", error)
         toast({
-          title: "Error loading records",
+          title: "Error: Loading records",
           description: "Could not load your work records.",
           variant: "destructive",
+          duration: 3000,
         })
       } finally {
         setIsLoading(false)
@@ -203,10 +204,10 @@ export function WorkStats() {
     if (missingEntries.length > 0) {
       // console.log("Entries:", entriesInRange)
       toast({
-        title: "Missing Work Entries",
+        title: "Warning: Missing Work Entries",
         description: `You have ${missingEntries.length} missing work entries in the selected period ${dateRange.start.toDateString()} - ${dateRange.end.toDateString()}.`,
-        variant: "destructive",
-        duration: 5000,
+        variant: "warning",
+        duration: 3000,
       });
     }
   }, [periodType, workEntries]);

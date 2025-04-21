@@ -29,9 +29,9 @@ export async function middleware(request: NextRequest) {
   }
 
   // Uncomment to protect routes
-  // if (!session && path.startsWith("/dashboard")) {
-  //   return NextResponse.redirect(new URL("/login", request.url));
-  // }
+  if (!session && path.startsWith("/dashboard")) {
+    return NextResponse.redirect(new URL("/login", request.url));
+  }
 
   return response;
 }

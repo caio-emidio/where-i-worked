@@ -88,9 +88,10 @@ export function WorkTracker() {
       } catch (error) {
         console.error("Error fetching work entries:", error);
         toast({
-          title: "Error loading records",
+          title: "Error: Loading records",
           description: "Could not load your work records.",
           variant: "destructive",
+          duration: 3000,
         });
       }
     };
@@ -130,16 +131,20 @@ export function WorkTracker() {
             // Only update if the location changed (from home to office)
             console.log("User is at the office");
             toast({
-              title: "You are at the office",
+              title: "Location: You are at the office",
               description: "Consider setting your location to 'Office'.",
+              variant: "info",
+              duration: 3000,
             });
             // setSelectedLocation("office");
           } else {
             // Only update if the location changed (from office to home)
             console.log("User is outside the office");
             toast({
-              title: "You are outside the office",
+              title: "Location: You are outside the office",
               description: "Consider setting your location to 'Home'.",
+              variant: "info",
+              duration: 3000,
             });
             // setSelectedLocation("home");
           }
@@ -212,27 +217,32 @@ export function WorkTracker() {
         }
         setCalendarRenderKey((prev) => prev + 1);
         toast({
-          title: "Record deleted",
+          title: "Error: Record deleted",
           description: `You deleted the record for ${format(
             selectedDate,
             "MM/dd/yyyy"
           )}.`,
+          variant: "destructive",
+          duration: 3000,
         });
       } else {
         toast({
-          title: "No record found",
+          title: "Error: No record found",
           description: `No record found for ${format(
             selectedDate,
             "MM/dd/yyyy"
           )}.`,
+          variant: "destructive",
+          duration: 3000,
         });
       }
     } catch (error) {
       console.error("Error deleting work entry:", error);
       toast({
-        title: "Error deleting record",
+        title: "Error: Error deleting record",
         description: "Could not delete your work record.",
         variant: "destructive",
+        duration: 3000,
       });
     } finally {
       setIsLoading(false);
@@ -246,9 +256,10 @@ export function WorkTracker() {
 
     if (!selectedLocation) {
       toast({
-        title: "Select a location",
+        title: "Error: Select a location",
         description: "Please select office, home, or time off before saving.",
         variant: "destructive",
+        duration: 3000,
       });
       return;
     }
@@ -325,13 +336,16 @@ export function WorkTracker() {
           selectedDate,
           "MM/dd/yyyy"
         )} ${locationText}.`,
+        variant: "success",
+        duration: 3000,
       });
     } catch (error) {
       console.error("Error saving work entry:", error);
       toast({
-        title: "Error saving record",
+        title: "Error: Error saving record",
         description: "Could not save your work record.",
         variant: "destructive",
+        duration: 3000,
       });
     } finally {
       setIsLoading(false);

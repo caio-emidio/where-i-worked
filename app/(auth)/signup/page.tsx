@@ -1,17 +1,15 @@
 "use client"
 
 import type React from "react"
-
 import { useState } from "react"
 import Link from "next/link"
-import { Clock } from "lucide-react"
-
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/contexts/auth-context"
+import { ThemeToggle } from "@/components/theme-toggle"
 
 export default function SignupPage() {
   const [email, setEmail] = useState("")
@@ -62,7 +60,7 @@ export default function SignupPage() {
 
   if (signupSuccess) {
     return (
-      <div className="flex min-h-screen items-center justify-center px-4 py-12">
+      <div className="flex min-h-screen items-center justify-center px-4 py-12 bg-black">
         <Card className="w-full max-w-md">
           <CardHeader>
             <CardTitle>Check your email</CardTitle>
@@ -84,23 +82,28 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4 py-12">
-      <div className="w-full max-w-md space-y-6">
-        <div className="flex flex-col items-center space-y-2 text-center">
-          <Clock className="h-10 w-10 text-primary" />
-          <h1 className="text-2xl font-bold">Where I Worked</h1>
+    <div className="relative flex min-h-screen items-center justify-center bg-cover bg-center" style={{ backgroundImage: "url('/bg.png')" }}>
+      <div className="absolute inset-0 bg-black/60 z-0 backdrop-blur-md" />
+      
+      <div className="absolute top-4 right-4 z-[100] text-white cursor-pointer">
+        <ThemeToggle />
+      </div>
+
+      <div className="relative z-10 w-full max-w-md rounded-xl bg-black/10 p-8 shadow-xl">
+        <div className="mb-6 text-center">
+          <h1 className="text-3xl font-bold text-purple-100">Where I Worked</h1>
           <p className="text-sm text-muted-foreground">Create an account to track your work days</p>
         </div>
 
-        <Card>
+        <Card className="bg-transparent shadow-none border-none">
           <CardHeader>
-            <CardTitle>Create account</CardTitle>
-            <CardDescription>Fill in the fields below to create your account</CardDescription>
+            <CardTitle className="text-white">Create account</CardTitle>
+            <CardDescription>Fill in the fields below to get started</CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email" className="text-white">Email</Label>
                 <Input
                   id="email"
                   type="email"
@@ -111,7 +114,7 @@ export default function SignupPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
+                <Label htmlFor="password" className="text-white">Password</Label>
                 <Input
                   id="password"
                   type="password"
@@ -122,7 +125,7 @@ export default function SignupPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="confirm-password">Confirm password</Label>
+                <Label htmlFor="confirm-password" className="text-white">Confirm password</Label>
                 <Input
                   id="confirm-password"
                   type="password"
@@ -137,7 +140,7 @@ export default function SignupPage() {
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? "Creating account..." : "Create account"}
               </Button>
-              <div className="text-center text-sm">
+              <div className="text-center text-sm text-white">
                 Already have an account?{" "}
                 <Link href="/login" className="text-primary hover:underline">
                   Sign in

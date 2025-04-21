@@ -1,17 +1,15 @@
 "use client"
 
 import type React from "react"
-import { useRouter } from "next/router"
 import { useState } from "react"
 import Link from "next/link"
-import { Clock } from "lucide-react"
-
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/contexts/auth-context"
+import { ThemeToggle } from "@/components/theme-toggle" // ajuste o caminho se necessário
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -23,13 +21,11 @@ export default function LoginPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-    console.log("Login form submitted for email:", email)
 
     try {
       const { error, success } = await signIn(email, password)
-      console.log(error, success)
+
       if (error) {
-        console.error("Login error in form handler:", error)
         toast({
           title: "Login error",
           description: error.message,
@@ -39,15 +35,11 @@ export default function LoginPage() {
       }
 
       if (success) {
-        console.log("Login successful in form handler")
-
         toast({
           title: "Login successful",
           description: "Welcome back!",
         })
-
         window.location.href = "/dashboard"
-
       }
     } finally {
       setIsLoading(false)
@@ -55,27 +47,32 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center px-4 py-12">
-      <div className="w-full max-w-md space-y-6">
-        <div className="flex flex-col items-center space-y-2 text-center">
-          <Clock className="h-10 w-10 text-primary" />
-          <h1 className="text-2xl font-bold">Where I Worked</h1>
+    <div className="relative flex min-h-screen items-center justify-center bg-cover bg-center" style={{ backgroundImage: "url('/bg.png')" }}>
+       <div className="absolute inset-0 bg-black/60 z-0 backdrop-blur-md md:backdrop-blur-none" />
+      {/* Theme toggle button */}
+      <div className="absolute top-4 right-4 z-[100] text-white cursor-pointer">
+        <ThemeToggle />
+      </div>
+
+      {/* Overlay for blur and form */}
+      <div className="relative z-10 w-full max-w-md rounded-xl bg-black/10 p-8 shadow-xl md:backdrop-blur-md backdrop-blur-none">
+        <div className="mb-6 text-center">
+          <h1 className="text-3xl font-bold text-purple-100">Where I Worked</h1>
           <p className="text-sm text-muted-foreground">Sign in to track your work days</p>
         </div>
 
-        <Card>
+        <Card className="bg-transparent shadow-none border-none">
           <CardHeader>
-            <CardTitle>Login</CardTitle>
             <CardDescription>Enter your email and password to access your account</CardDescription>
           </CardHeader>
           <form onSubmit={handleSubmit}>
             <CardContent className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email" className="text-white">Email</Label>
                 <Input
                   id="email"
                   type="email"
-                  placeholder="joe@doe.com"
+                  placeholder="ben@adams.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   required
@@ -83,7 +80,7 @@ export default function LoginPage() {
               </div>
               <div className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password" className="text-white">Password</Label>
                   <Link href="/forgot-password" className="text-xs text-primary hover:underline">
                     Forgot password?
                   </Link>
@@ -102,8 +99,7 @@ export default function LoginPage() {
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? "Signing in..." : "Sign in"}
               </Button>
-
-              <div className="text-center text-sm">
+              <div className="text-center text-sm text-white">
                 Don't have an account?{" "}
                 <Link href="/signup" className="text-primary hover:underline">
                   Sign up

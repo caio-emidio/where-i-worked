@@ -485,7 +485,7 @@ export function WorkTracker() {
               onClick={() => setSelectedLocation("time_off")}
             >
               <CalendarIcon2 className="h-6 w-6" />
-              <span className="text-xs text-center whitespace-normal break-words">PTO/ Sick/ Holiday</span>
+              <span className="text-xs text-center whitespace-normal break-words">Time Off</span>
             </Button>
           </div>
         </CardContent>

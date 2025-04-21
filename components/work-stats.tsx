@@ -40,7 +40,7 @@ type DateRange = {
 
 export function WorkStats() {
   const [workEntries, setWorkEntries] = useState<WorkEntry[]>([])
-  const [periodType, setPeriodType] = useState("week")
+  const [periodType, setPeriodType] = useState("quarter")
   const [customRange, setCustomRange] = useState<DateRange | null>(null)
   const [customStartDate, setCustomStartDate] = useState<Date | undefined>()
   const [customEndDate, setCustomEndDate] = useState<Date | undefined>()
@@ -277,9 +277,9 @@ export function WorkStats() {
                   <SelectValue placeholder="Select a period" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="quarter">Quarterly</SelectItem>
                   <SelectItem value="week">Weekly</SelectItem>
                   <SelectItem value="month">Monthly</SelectItem>
-                  <SelectItem value="quarter">Quarterly</SelectItem>
                   <SelectItem value="custom">Custom</SelectItem>
                 </SelectContent>
               </Select>

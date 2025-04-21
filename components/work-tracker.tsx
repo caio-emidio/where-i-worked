@@ -217,7 +217,7 @@ export function WorkTracker() {
         }
         setCalendarRenderKey((prev) => prev + 1);
         toast({
-          title: "Error: Record deleted",
+          title: "Record deleted",
           description: `You deleted the record for ${format(
             selectedDate,
             "MM/dd/yyyy"
@@ -239,7 +239,7 @@ export function WorkTracker() {
     } catch (error) {
       console.error("Error deleting work entry:", error);
       toast({
-        title: "Error: Error deleting record",
+        title: "Error: Deleting record",
         description: "Could not delete your work record.",
         variant: "destructive",
         duration: 3000,

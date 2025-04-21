@@ -55,7 +55,7 @@ export default function DashboardLayout({
       <header className="sticky top-0 z-10 border-b bg-background">
         <div className="container flex h-14 items-center justify-between">
           <div className="flex items-center gap-2">
-            <Clock className="h-5 w-5 text-primary" />
+            <img src="/android-chrome-192x192.png" alt="Logo" className="size-8 rounded-md" />
             <span className="font-semibold text-lg">Where I Worked</span>
           </div>
           <div className="flex items-center gap-2">

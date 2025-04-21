@@ -10,6 +10,8 @@ import {
   isWithinInterval,
   subMonths,
   addDays,
+  isWeekend,
+  startOfDay,
 } from "date-fns"
 import { enIE } from "date-fns/locale"
 import { Building2, Home, CalendarIcon, CalendarPlus2Icon as CalendarIcon2 } from "lucide-react"
@@ -38,12 +40,14 @@ type DateRange = {
   end: Date
 }
 
+type PeriodType = "week" | "month" | "quarter" | "custom"
+
 export function WorkStats() {
   const [workEntries, setWorkEntries] = useState<WorkEntry[]>([])
-  const [periodType, setPeriodType] = useState("quarter")
+  const [periodType, setPeriodType] = useState<PeriodType>("quarter")
   const [customRange, setCustomRange] = useState<DateRange | null>(null)
-  const [customStartDate, setCustomStartDate] = useState<Date | undefined>()
-  const [customEndDate, setCustomEndDate] = useState<Date | undefined>()
+  const [customStartDate, setCustomStartDate] = useState<Date | null>()
+  const [customEndDate, setCustomEndDate] = useState<Date | null>()
   const [isLoading, setIsLoading] = useState(false)
   const { user } = useAuth()
   const { toast } = useToast()
@@ -127,6 +131,16 @@ export function WorkStats() {
   // Set custom range when both dates are selected
   useEffect(() => {
     if (customStartDate && customEndDate) {
+      // Ensure the start date is before the end date
+      if (customStartDate > customEndDate) {
+        toast({
+          title: "Invalid date range",
+          description: "Start date must be before end date.",
+          variant: "destructive",
+          duration: 3000,
+        })
+        return;
+      }
       setCustomRange({
         start: customStartDate,
         end: customEndDate,
@@ -151,7 +165,6 @@ export function WorkStats() {
         }
       case "quarter":
         const { start, end } = getCustomQuarterRange(today);
-        console.log("Custom Quarter Range:", start, end);
         return {
           start: start,
           end: end,
@@ -175,6 +188,12 @@ export function WorkStats() {
   // If not, we should show a warning
   useEffect(() => {
     if (!dateRange?.start || !dateRange?.end || !workEntries || workEntries.length === 0) return;
+
+    if (periodType === "custom" && (!customStartDate || !customEndDate)) {
+      return;
+    }
+
+
     const entriesInRange = workEntries.filter((entry) =>
       isWithinInterval(entry.date, {
         start: dateRange.start,
@@ -192,19 +211,14 @@ export function WorkStats() {
       currentDate.setDate(currentDate.getDate() + 1);
     }
 
-    // console.log("Weekdays:", weekdays)
-
     const missingEntries = weekdays.filter(
       (date) => !entriesInRange.some((entry) => entry.date.toDateString() === date.toDateString())
     );
 
-    // console.log("Missing Entries:", missingEntries)
-
     if (missingEntries.length > 0) {
-      // console.log("Entries:", entriesInRange)
       toast({
         title: "Missing Work Entries",
-        description: `You have ${missingEntries.length} missing work entries in the selected period ${dateRange.start.toDateString()} - ${dateRange.end.toDateString()}.`,
+        description: `You have ${missingEntries.length} missing work entries in the selected period ${dateRange.start.toDateString()} - ${dateRange.end.toDateString()}. Stats maybe incorrect.`,
         variant: "destructive",
         duration: 5000,
       });
@@ -213,40 +227,39 @@ export function WorkStats() {
 
   // Get the current date range based on the selected period
   const dateRange = getCurrentDateRange()
-  // console.log("Date Range:", dateRange)
+
   // Calculate statistics - excluding time_off entries
   const calculateStats = () => {
-    // Get all entries in the date range
+
     const entriesInRange = workEntries.filter((entry) =>
-      isWithinInterval(entry.date, {
-        start: dateRange.start,
-        end: dateRange.end,
+      isWithinInterval(startOfDay(entry.date), {
+        start: startOfDay(dateRange.start),
+        end: startOfDay(dateRange.end),
       }),
     )
-
-    // console.log("Entries in Range:", dateRange.start, dateRange.end, entriesInRange)
-
-    // validateDateRange(entriesInRange, dateRange);
 
     // Filter out time_off entries for statistics
     const workEntriesOnly = entriesInRange.filter((entry) => entry.location !== "time_off")
 
     const officeCount = workEntriesOnly.filter((entry) => entry.location === "office").length
     const homeCount = workEntriesOnly.filter((entry) => entry.location === "home").length
-    const totalWorkDays = workEntriesOnly.length
+    const totalWorkDaysExcludingTimeOff = entriesInRange.filter((entry) =>
+      // Filter out weekends and time_off entries
+      !isWeekend(entry.date) &&
+      entry.location !== "time_off"
+    ).length
+
     // Count time_off days separately (not included in percentages)
     const timeOffCount = entriesInRange.filter((entry) => entry.location === "time_off").length
-    const totalDays = entriesInRange.length
 
-    const officePercentage = totalWorkDays > 0 ? Math.round((officeCount / totalWorkDays) * 100) : 0
-    const homePercentage = totalWorkDays > 0 ? Math.round((homeCount / totalWorkDays) * 100) : 0
+    const officePercentage = totalWorkDaysExcludingTimeOff > 0 ? Number(((officeCount / totalWorkDaysExcludingTimeOff) * 100).toFixed(1)) : 0
+    const homePercentage = totalWorkDaysExcludingTimeOff > 0 ? Number(((homeCount / totalWorkDaysExcludingTimeOff) * 100).toFixed(1)) : 0
 
     return {
       officeCount,
       homeCount,
       timeOffCount,
-      totalWorkDays,
-      totalDays,
+      totalWorkDaysExcludingTimeOff,
       officePercentage,
       homePercentage,
     }
@@ -257,8 +270,8 @@ export function WorkStats() {
 
   // Prepare data for pie chart - excluding time_off
   const chartData = [
-    { name: "Office", value: stats.officeCount, color: "hsl(var(--primary))" },
-    { name: "Home", value: stats.homeCount, color: theme === "dark" ? "#eab308" : "#eab308" },
+    { name: "Office", value: stats.officeCount, percent: stats.officePercentage, color: "hsl(var(--primary))" },
+    { name: "Home", value: stats.homeCount, percent: stats.homePercentage, color: theme === "dark" ? "#eab308" : "#eab308" },
   ].filter((item) => item.value > 0)
 
   return (
@@ -272,7 +285,7 @@ export function WorkStats() {
           <div className="space-y-4">
             <div>
               <label className="text-sm font-medium mb-1.5 block">Period</label>
-              <Select value={periodType} onValueChange={setPeriodType}>
+              <Select value={periodType} onValueChange={(periodType) => setPeriodType(periodType as PeriodType)}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select a period" />
                 </SelectTrigger>
@@ -300,7 +313,7 @@ export function WorkStats() {
                       <PopoverContent className="w-auto p-0">
                         <Calendar
                           mode="single"
-                          selected={customStartDate}
+                          selected={customStartDate || new Date()}
                           onSelect={setCustomStartDate}
                           initialFocus
                           locale={enIE}
@@ -321,7 +334,7 @@ export function WorkStats() {
                       <PopoverContent className="w-auto p-0">
                         <Calendar
                           mode="single"
-                          selected={customEndDate}
+                          selected={customEndDate || new Date()}
                           onSelect={setCustomEndDate}
                           initialFocus
                           locale={enIE}
@@ -344,19 +357,23 @@ export function WorkStats() {
             </div>
           ) : (
             <div>
-              <div className="text-center mb-4">
-                <h3 className="text-sm font-medium text-muted-foreground">
-                  {format(dateRange.start, "MM/dd/yyyy", { locale: enIE })} -{" "}
-                  {format(dateRange.end, "MM/dd/yyyy", { locale: enIE })}
-                </h3>
-              </div>
+              {!(periodType === "custom" && (!customStartDate || !customEndDate)) && (
+                <div className="text-center mb-4">
+                  <h3 className="text-sm font-medium text-muted-foreground">
+                    {format(customStartDate ? customStartDate : dateRange.start, "MM/dd/yyyy", { locale: enIE })} -{" "}
+                    {format(customEndDate ? customEndDate : dateRange.end, "MM/dd/yyyy", { locale: enIE })}
+                  </h3>
+                </div>
+              )
+              }
 
-              {stats.totalDays > 0 ? (
+              {stats.totalWorkDaysExcludingTimeOff > 0 ? (
                 <>
-                  <div className="flex justify-center mb-6">
-                    {stats.totalWorkDays > 0 ? (
-                      <div className="h-56 w-56">
-                        <ResponsiveContainer width="100%" height={250}>
+                  <div className="flex justify-center items-center mb-6">
+                    {stats.totalWorkDaysExcludingTimeOff > 0 &&
+                      !(periodType === "custom" && (!customStartDate || !customEndDate)) ? (
+                      <div className="w-56 h-56 flex items-center justify-center">
+                        <ResponsiveContainer width="100%" height="100%">
                           <PieChart>
                             <Pie
                               data={chartData}
@@ -366,9 +383,7 @@ export function WorkStats() {
                               outerRadius={70}
                               fill="#8884d8"
                               dataKey="value"
-                              label={({ name, percent }) =>
-                                `${Math.round(percent * 100)}%`
-                              }
+                              label={({ percent }) => `${percent}%`}
                             >
                               {chartData.map((entry, index) => (
                                 <Cell key={`cell-${index}`} fill={entry.color} />
@@ -378,53 +393,68 @@ export function WorkStats() {
                             <Legend />
                           </PieChart>
                         </ResponsiveContainer>
-
                       </div>
                     ) : (
                       <div className="text-center py-4">
                         <Card className="overflow-hidden">
-                          <p className="text-muted-foreground">No work days recorded in this period.</p>
-                          <p className="text-sm mt-2">Only time off days were recorded.</p>
+                          {periodType === "custom" && (!customStartDate || !customEndDate) ? (
+                            <p className="text-muted-foreground">Please select both start and end dates to view data.</p>
+                          ) : (
+                            <>
+                              <p className="text-muted-foreground">No work days recorded in this period.</p>
+                              <p className="text-sm mt-2">Only time off days were recorded.</p>
+                            </>
+                          )}
                         </Card>
                       </div>
                     )}
+
                   </div>
                   <Separator className="mb-4" />
-                  <div className="grid grid-cols-3 gap-4">
-                    <Card className="overflow-hidden" onClick={() => { }}>
-                      <div className="h-2 bg-primary" />
-                      <CardContent className="p-4 pt-6 text-center">
-                        <Building2 className="h-6 w-6 mx-auto mb-2 text-primary" />
-                        <div className="text-2xl font-bold">{stats.officePercentage}%</div>
-                        <div className="text-sm text-muted-foreground">Office</div>
-                        <div className="text-xs text-muted-foreground mt-1">{stats.officeCount} days</div>
-                      </CardContent>
-                    </Card>
+                  {!(periodType === "custom" && (!customStartDate || !customEndDate)) && (
+                    <div>
+                      <div className="grid grid-cols-3 gap-4">
+                        <Card className="overflow-hidden" onClick={() => { }}>
+                          <div className="h-2 bg-primary" />
+                          <CardContent className="p-4 pt-6 text-center">
+                            <Building2 className="h-6 w-6 mx-auto mb-2 text-primary" />
+                            <div className="text-2xl font-bold">{stats.officePercentage}%</div>
+                            <div className="text-sm text-muted-foreground">Office</div>
+                            <div className="text-xs text-muted-foreground mt-1">{stats.officeCount} days</div>
+                            {(stats.homePercentage + stats.officePercentage) > 100 && (
+                              <div className="mt-1 text-xs text-muted-foreground">
+                                <strong>Note: Weekend office days are also included in the total.</strong>
+                              </div>
+                            )}
+                          </CardContent>
+                        </Card>
 
-                    <Card className="overflow-hidden">
-                      <div className="h-2 bg-yellow-500" />
-                      <CardContent className="p-4 pt-6 text-center">
-                        <Home className="h-6 w-6 mx-auto mb-2 text-yellow-500" />
-                        <div className="text-2xl font-bold">{stats.homePercentage}%</div>
-                        <div className="text-sm text-muted-foreground">Home</div>
-                        <div className="text-xs text-muted-foreground mt-1">{stats.homeCount} days</div>
-                      </CardContent>
-                    </Card>
+                        <Card className="overflow-hidden">
+                          <div className="h-2 bg-yellow-500" />
+                          <CardContent className="p-4 pt-6 text-center">
+                            <Home className="h-6 w-6 mx-auto mb-2 text-yellow-500" />
+                            <div className="text-2xl font-bold">{stats.homePercentage}%</div>
+                            <div className="text-sm text-muted-foreground">Home</div>
+                            <div className="text-xs text-muted-foreground mt-1">{stats.homeCount} days</div>
+                          </CardContent>
+                        </Card>
 
-                    <Card className="overflow-hidden">
-                      <div className="h-2 bg-blue-500" />
-                      <CardContent className="p-4 pt-6 text-center">
-                        <CalendarIcon2 className="h-6 w-6 mx-auto mb-2 text-blue-500" />
-                        <div className="text-2xl font-bold">{stats.timeOffCount}</div>
-                        <div className="text-sm text-muted-foreground">Time Off</div>
-                        <div className="text-xs text-muted-foreground mt-1">Not in stats</div>
-                      </CardContent>
-                    </Card>
-                  </div>
+                        <Card className="overflow-hidden">
+                          <div className="h-2 bg-blue-500" />
+                          <CardContent className="p-4 pt-6 text-center">
+                            <CalendarIcon2 className="h-6 w-6 mx-auto mb-2 text-blue-500" />
+                            <div className="text-2xl font-bold">{stats.timeOffCount}</div>
+                            <div className="text-sm text-muted-foreground">Time Off</div>
+                            <div className="text-xs text-muted-foreground mt-1">Not in stats</div>
+                          </CardContent>
+                        </Card>
+                      </div>
 
-                  <div className="mt-4 text-center text-sm text-muted-foreground">
-                    <p>* Time off days (PTO/Sick/Holiday) are not included in work percentage calculations</p>
-                  </div>
+                      <div className="mt-4 text-center text-sm text-muted-foreground">
+                        <p>* Time off days (PTO/Sick/Holiday) are not included in work percentage calculations</p>
+                      </div>
+                    </div>
+                  )}
                 </>
               ) : (
                 <div className="text-center py-8 text-muted-foreground">

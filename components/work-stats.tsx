@@ -241,6 +241,9 @@ export function WorkStats() {
     // Filter out time_off entries for statistics
     const workEntriesOnly = entriesInRange.filter((entry) => entry.location !== "time_off")
 
+    const weekEndEntriesCount = workEntriesOnly.filter((entry) => isWeekend(entry.date)).length
+    console.log("weekEndEntriesCount", weekEndEntriesCount)
+
     const officeCount = workEntriesOnly.filter((entry) => entry.location === "office").length
     const homeCount = workEntriesOnly.filter((entry) => entry.location === "home").length
     const totalWorkDaysExcludingTimeOff = entriesInRange.filter((entry) =>
@@ -262,6 +265,7 @@ export function WorkStats() {
       totalWorkDaysExcludingTimeOff,
       officePercentage,
       homePercentage,
+      weekEndEntriesCount
     }
   }
 
@@ -421,7 +425,7 @@ export function WorkStats() {
                             <div className="text-2xl font-bold">{stats.officePercentage}%</div>
                             <div className="text-sm text-muted-foreground">Office</div>
                             <div className="text-xs text-muted-foreground mt-1">{stats.officeCount} days</div>
-                            {(stats.homePercentage + stats.officePercentage) > 100 && (
+                            {stats.weekEndEntriesCount > 0 && (
                               <div className="mt-1 text-xs text-muted-foreground">
                                 <strong>Note: Weekend office days are also included in the total.</strong>
                               </div>

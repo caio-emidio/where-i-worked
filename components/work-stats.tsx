@@ -183,7 +183,7 @@ export function WorkStats() {
     )
 
     const weekdays: Date[] = [];
-    let currentDate = new Date(dateRange.start);
+    const currentDate = new Date(dateRange.start);
 
     while (currentDate <= dateRange.end) {
       if (currentDate.getDay() !== 0 && currentDate.getDay() !== 6) {

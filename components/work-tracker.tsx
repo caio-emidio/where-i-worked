@@ -1,18 +1,19 @@
 "use client";
 
-import { useState, useEffect, use } from "react";
+import { format, isSameDay, subDays } from "date-fns";
+import { enIE } from "date-fns/locale";
 import {
   Building2,
-  Home,
   CalendarIcon,
   CalendarPlus2Icon as CalendarIcon2,
+  Home,
   Save,
   Trash2,
 } from "lucide-react";
-import { format, subDays, isSameDay } from "date-fns";
-import { enIE, se } from "date-fns/locale";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
 import {
   Card,
   CardContent,
@@ -21,30 +22,22 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Calendar } from "@/components/ui/calendar";
 import {
   Popover,
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
-import { useToast } from "@/hooks/use-toast";
-import { Badge } from "@/components/ui/badge";
-import { cn } from "@/lib/utils";
-import { createClientSupabaseClient } from "@/lib/supabase/client";
 import { useAuth } from "@/contexts/auth-context";
+import { useToast } from "@/hooks/use-toast";
+import { createClientSupabaseClient } from "@/lib/supabase/client";
+import { cn } from "@/lib/utils";
 import { getDistance } from 'geolib';
+import { RecentRecords } from "./recentRecords";
+import { WorkLocation, WorkEntry } from "@/types/work-entry";
 
-type WorkLocation = "office" | "home" | "time_off" | null;
 const officeCoordinates = [{ latitude: 53.347807, longitude: -6.275438 }, { latitude: 53.349233, longitude: -6.245408 }]; // Example coordinates for your office
 const geofenceRadius = 100; // Geofence radius in meters
 
-
-interface WorkEntry {
-  id?: string;
-  date: Date;
-  location: WorkLocation;
-  user_id?: string;
-}
 
 export function WorkTracker() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
@@ -348,16 +341,21 @@ export function WorkTracker() {
 
   // Function to get recent entries (1st of the month till today)
   const getRecentEntries = () => {
-    const recentDays = Array.from({ length: new Date().getDate() }, (_, i) =>
-      subDays(new Date(), i)
+    const year = selectedDate.getFullYear();
+    const month = selectedDate.getMonth();
+  
+    const daysInMonth = new Date(year, month + 1, 0).getDate();
+  
+    const daysOfMonth = Array.from({ length: daysInMonth }, (_, i) =>
+      new Date(year, month, i + 1)
     );
-
-    // Filter out weekends (Saturday = 6, Sunday = 0)
-    const workdays = recentDays.filter((day) => {
+  
+    // Filtra dias úteis (segunda a sexta)
+    const workdays = daysOfMonth.filter((day) => {
       const dayOfWeek = day.getDay();
-      return dayOfWeek !== 0 && dayOfWeek !== 6; // Exclude Sunday (0) and Saturday (6)
+      return dayOfWeek !== 0 && dayOfWeek !== 6;
     });
-
+  
     return workdays.map((day) => {
       const entry = workEntries.find((e) => isSameDay(e.date, day));
       return {
@@ -370,7 +368,7 @@ export function WorkTracker() {
 
   useEffect(() => {
     setRecentEntries(getRecentEntries());
-  }, [workEntries]);
+  }, [workEntries, selectedDate]);
 
   useEffect(() => {
     setOfficeDates(
@@ -388,11 +386,6 @@ export function WorkTracker() {
         .filter((entry) => entry.location === "time_off")
         .map((entry) => entry.date)
     );
-
-    // console.log("Updating dates");
-    // console.log("Office Dates:", officeDates);
-    // console.log("Home Dates:", homeDates);
-    // console.log("Time Off Dates:", timeOffDates);
 
   }, [workEntries]);
 
@@ -512,60 +505,7 @@ export function WorkTracker() {
         </CardFooter>
       </Card>
 
-      <Card className="md:w-2/3">
-        <CardHeader>
-          <CardTitle>Recent Records</CardTitle>
-          <CardDescription>Your last {recentEntries.length} days of work</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-2">
-            {recentEntries.map((entry, index) => (
-              <div
-                key={index}
-                className="flex items-center justify-between p-3 border rounded-md"
-              >
-                <span className="font-medium">
-                  {format(entry.date, "EEEE, MM/dd", { locale: enIE })}
-                </span>
-                {entry.location ? (
-                  <Badge
-                    variant="outline"
-                    className={cn(
-                      "flex items-center gap-1",
-                      entry.location === "office"
-                        ? "bg-primary/10 text-primary border-primary/20"
-                        : entry.location === "home"
-                          ? "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border-yellow-500/20"
-                          : "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20"
-                    )}
-                  >
-                    {entry.location === "office" ? (
-                      <>
-                        <Building2 className="h-3 w-3" />
-                        <span>Office</span>
-                      </>
-                    ) : entry.location === "home" ? (
-                      <>
-                        <Home className="h-3 w-3" />
-                        <span>Home</span>
-                      </>
-                    ) : (
-                      <>
-                        <CalendarIcon2 className="h-3 w-3" />
-                        <span>Time Off</span>
-                      </>
-                    )}
-                  </Badge>
-                ) : (
-                  <span className="text-muted-foreground text-sm">
-                    Not recorded
-                  </span>
-                )}
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
+      <RecentRecords recentEntries={recentEntries} />
     </div>
   );
 }

@@ -27,15 +27,9 @@ import { createClientSupabaseClient } from "@/lib/supabase/client"
 import { useAuth } from "@/contexts/auth-context"
 import { useToast } from "@/hooks/use-toast"
 import { useTheme } from "next-themes"
+import { calculateStats, WorkEntry } from "@/lib/calculateStats"
 
-interface WorkEntry {
-  id: string
-  date: Date
-  location: "office" | "home" | "time_off"
-  user_id: string
-}
-
-type DateRange = {
+export type DateRange = {
   start: Date
   end: Date
 }
@@ -228,50 +222,9 @@ export function WorkStats() {
 
   // Get the current date range based on the selected period
   const dateRange = getCurrentDateRange()
+  // console.log("dateRange", dateRange)
 
-  // Calculate statistics - excluding time_off entries
-  const calculateStats = () => {
-
-    const entriesInRange = workEntries.filter((entry) =>
-      isWithinInterval(startOfDay(entry.date), {
-        start: startOfDay(dateRange.start),
-        end: startOfDay(dateRange.end),
-      }),
-    )
-
-    // Filter out time_off entries for statistics
-    const workEntriesOnly = entriesInRange.filter((entry) => entry.location !== "time_off")
-
-    const weekEndEntriesCount = workEntriesOnly.filter((entry) => isWeekend(entry.date)).length
-    console.log("weekEndEntriesCount", weekEndEntriesCount)
-
-    const officeCount = workEntriesOnly.filter((entry) => entry.location === "office").length
-    const homeCount = workEntriesOnly.filter((entry) => entry.location === "home").length
-    const totalWorkDaysExcludingTimeOff = entriesInRange.filter((entry) =>
-      // Filter out weekends and time_off entries
-      !isWeekend(entry.date) &&
-      entry.location !== "time_off"
-    ).length
-
-    // Count time_off days separately (not included in percentages)
-    const timeOffCount = entriesInRange.filter((entry) => entry.location === "time_off").length
-
-    const officePercentage = totalWorkDaysExcludingTimeOff > 0 ? Number(((officeCount / totalWorkDaysExcludingTimeOff) * 100).toFixed(1)) : 0
-    const homePercentage = totalWorkDaysExcludingTimeOff > 0 ? Number(((homeCount / totalWorkDaysExcludingTimeOff) * 100).toFixed(1)) : 0
-
-    return {
-      officeCount,
-      homeCount,
-      timeOffCount,
-      totalWorkDaysExcludingTimeOff,
-      officePercentage,
-      homePercentage,
-      weekEndEntriesCount
-    }
-  }
-
-
-  const stats = calculateStats()
+  const stats = calculateStats(workEntries, dateRange)
 
   // Prepare data for pie chart - excluding time_off
   const chartData = [

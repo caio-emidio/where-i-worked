@@ -45,6 +45,7 @@ export function WorkTracker() {
   const [workEntries, setWorkEntries] = useState<WorkEntry[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [recentEntries, setRecentEntries] = useState<WorkEntry[]>([]);
+  const [calendarOpen, setCalendarOpen] = useState(false);
 
   const [officeDates, setOfficeDates] = useState<Date[]>([]); // Store office dates
   const [homeDates, setHomeDates] = useState<Date[]>([]); // Store home dates
@@ -415,7 +416,7 @@ export function WorkTracker() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex justify-center">
-            <Popover>
+            <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
               <PopoverTrigger asChild>
                 <Button
                   variant={"outline"}
@@ -436,7 +437,12 @@ export function WorkTracker() {
                 <Calendar
                   key={calendarRenderKey} // Re-render calendar when work entries change
                   mode="single"
-                  onSelect={(date) => date && setSelectedDate(date)}
+                  onSelect={(date) => {
+                    if (date) {
+                      setSelectedDate(date);
+                      setCalendarOpen(false);
+                    }
+                  }}
                   selected={selectedDate}
                   locale={enIE}
                   modifiers={{

@@ -1,6 +1,6 @@
 "use client";
 
-import { format, isSameDay, subDays } from "date-fns";
+import { format, isSameDay } from "date-fns";
 import { enIE } from "date-fns/locale";
 import {
   Building2,
@@ -31,10 +31,10 @@ import { useAuth } from "@/contexts/auth-context";
 import { useToast } from "@/hooks/use-toast";
 import { createClientSupabaseClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
+import { WorkEntry, WorkLocation } from "@/types/work-entry";
 import { getDistance } from 'geolib';
 import { RecentRecords } from "./recentRecords";
-import { WorkLocation, WorkEntry } from "@/types/work-entry";
-
+import { PlanWeek } from "./planWeek";
 const officeCoordinates = [{ latitude: 53.347807, longitude: -6.275438 }, { latitude: 53.349233, longitude: -6.245408 }]; // Example coordinates for your office
 const geofenceRadius = 100; // Geofence radius in meters
 
@@ -137,7 +137,7 @@ export function WorkTracker() {
               variant: "info",
               duration: 3000,
             });
-            // setSelectedLocation("office");
+            setSelectedLocation("office");
           } else {
             // Only update if the location changed (from office to home)
             console.log("User is outside the office");
@@ -358,19 +358,19 @@ export function WorkTracker() {
   const getRecentEntries = () => {
     const year = selectedDate.getFullYear();
     const month = selectedDate.getMonth();
-  
+
     const daysInMonth = new Date(year, month + 1, 0).getDate();
-  
+
     const daysOfMonth = Array.from({ length: daysInMonth }, (_, i) =>
       new Date(year, month, i + 1)
     );
-  
+
     // Filtra dias úteis (segunda a sexta)
     const workdays = daysOfMonth.filter((day) => {
       const dayOfWeek = day.getDay();
       return dayOfWeek !== 0 && dayOfWeek !== 6;
     });
-  
+
     return workdays.map((day) => {
       const entry = workEntries.find((e) => isSameDay(e.date, day));
       return {
@@ -405,125 +405,130 @@ export function WorkTracker() {
   }, [workEntries]);
 
 
+
   return (
     <div className="md:container flex flex-col md:flex-row gap-6">
-      <Card className="md:w-1/2">
-        <CardHeader>
-          <CardTitle>Record Location</CardTitle>
-          <CardDescription>
-            Select the date and where you worked
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex justify-center">
-            <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
-              <PopoverTrigger asChild>
-                <Button
-                  variant={"outline"}
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !selectedDate && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {selectedDate ? (
-                    format(selectedDate, "PPP", { locale: enIE })
-                  ) : (
-                    <span>Select a date</span>
-                  )}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
-                <Calendar
-                  key={calendarRenderKey} // Re-render calendar when work entries change
-                  mode="single"
-                  onSelect={(date) => {
-                    if (date) {
-                      setSelectedDate(date);
-                      setCalendarOpen(false);
-                    }
-                  }}
-                  selected={selectedDate}
-                  locale={enIE}
-                  modifiers={{
-                    office: officeDates,
-                    home: homeDates,
-                    time_off: timeOffDates,
-                  }}
-                  modifiersClassNames={{
-                    office: "bg-purple-500/80 hover:bg-purple-600/60 text-black dark:text-white",
-                    home: "bg-yellow-500/80 hover:bg-yellow-600/60 text-black dark:text-white",
-                    time_off: "bg-blue-500/80 hover:bg-blue-600/60 text-black dark:text-white",
-                    selected: "bg-gray-500/80 hover:bg-gray-600/60 text-black dark:text-white",
-                  }}
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
+      <div className="md:w-1/2">
+        <Card >
+          <CardHeader>
+            <CardTitle>Record Location</CardTitle>
+            <CardDescription>
+              Select the date and where you worked
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex justify-center">
+              <Popover open={calendarOpen} onOpenChange={setCalendarOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant={"outline"}
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !selectedDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {selectedDate ? (
+                      format(selectedDate, "PPP", { locale: enIE })
+                    ) : (
+                      <span>Select a date</span>
+                    )}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    key={calendarRenderKey} // Re-render calendar when work entries change
+                    mode="single"
+                    onSelect={(date) => {
+                      if (date) {
+                        setSelectedDate(date);
+                        setCalendarOpen(false);
+                      }
+                    }}
+                    selected={selectedDate}
+                    locale={enIE}
+                    modifiers={{
+                      office: officeDates,
+                      home: homeDates,
+                      time_off: timeOffDates,
+                    }}
+                    modifiersClassNames={{
+                      office: "bg-purple-500/80 hover:bg-purple-600/60 text-black dark:text-white",
+                      home: "bg-yellow-500/80 hover:bg-yellow-600/60 text-black dark:text-white",
+                      time_off: "bg-blue-500/80 hover:bg-blue-600/60 text-black dark:text-white",
+                      selected: "bg-gray-500/80 hover:bg-gray-600/60 text-black dark:text-white",
+                    }}
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
 
-          <div className="grid grid-cols-3 gap-4 mt-6">
-            <Button
-              variant="outline"
-              className={cn(
-                "h-24 flex flex-col items-center justify-center gap-2",
-                selectedLocation === "office" &&
-                "bg-purple-600 hover:bg-purple-700 text-black dark:text-white"
-              )}
-              onClick={() => setSelectedLocation("office")}
-            >
-              <Building2 className="h-6 w-6" />
-              <span>Office</span>
-            </Button>
+            <div className="grid grid-cols-3 gap-4 mt-6">
+              <Button
+                variant="outline"
+                className={cn(
+                  "h-24 flex flex-col items-center justify-center gap-2",
+                  selectedLocation === "office" &&
+                  "bg-purple-600 hover:bg-purple-700 text-black dark:text-white"
+                )}
+                onClick={() => setSelectedLocation("office")}
+              >
+                <Building2 className="h-6 w-6" />
+                <span>Office</span>
+              </Button>
 
-            <Button
-              variant="outline"
-              className={cn(
-                "h-24 flex flex-col items-center justify-center gap-2",
-                selectedLocation === "home" &&
-                "bg-yellow-500 hover:bg-yellow-600 text-black dark:text-white"
-              )}
-              onClick={() => setSelectedLocation("home")}
-            >
-              <Home className="h-6 w-6" />
-              <span>Home</span>
-            </Button>
+              <Button
+                variant="outline"
+                className={cn(
+                  "h-24 flex flex-col items-center justify-center gap-2",
+                  selectedLocation === "home" &&
+                  "bg-yellow-500 hover:bg-yellow-600 text-black dark:text-white"
+                )}
+                onClick={() => setSelectedLocation("home")}
+              >
+                <Home className="h-6 w-6" />
+                <span>Home</span>
+              </Button>
 
-            <Button
-              variant="outline"
-              className={cn(
-                "h-24 flex flex-col items-center justify-center gap-2",
-                selectedLocation === "time_off" &&
-                "bg-blue-500 hover:bg-blue-600 text-white"
-              )}
-              onClick={() => setSelectedLocation("time_off")}
-            >
-              <CalendarIcon2 className="h-6 w-6" />
-              <span className="text-xs text-center whitespace-normal break-words">Time Off</span>
-            </Button>
-          </div>
-        </CardContent>
-        <CardFooter>
-          <div className="grid grid-cols-2 gap-4 w-full">
-            <Button onClick={saveEntry} className="bg-green-600 hover:bg-green-700 text-white flex items-center justify-center whitespace-normal break-words" disabled={isLoading}>
-              {loadingAction === "save" ? "Saving..." : (
-                <>
-                  <Save className="mr-2 h-4 w-4" />
-                  Save Record
-                </>
-              )}
-            </Button>
+              <Button
+                variant="outline"
+                className={cn(
+                  "h-24 flex flex-col items-center justify-center gap-2",
+                  selectedLocation === "time_off" &&
+                  "bg-blue-500 hover:bg-blue-600 text-white"
+                )}
+                onClick={() => setSelectedLocation("time_off")}
+              >
+                <CalendarIcon2 className="h-6 w-6" />
+                <span className="text-xs text-center whitespace-normal break-words">Time Off</span>
+              </Button>
+            </div>
+          </CardContent>
+          <CardFooter>
+            <div className="grid grid-cols-2 gap-4 w-full">
+              <Button onClick={saveEntry} className="bg-green-600 hover:bg-green-700 text-white flex items-center justify-center whitespace-normal break-words" disabled={isLoading}>
+                {loadingAction === "save" ? "Saving..." : (
+                  <>
+                    <Save className="mr-2 h-4 w-4" />
+                    Save Record
+                  </>
+                )}
+              </Button>
 
-            <Button onClick={deleteEntry} className="bg-red-600 hover:bg-red-700 text-white flex items-center justify-center whitespace-normal break-words" disabled={isLoading}>
-              {loadingAction === "delete" ? "Deleting..." : (
-                <>
-                  <Trash2 />
-                  Delete Record
-                </>
-              )}
-            </Button>
-          </div>
-        </CardFooter>
-      </Card>
+              <Button onClick={deleteEntry} className="bg-red-600 hover:bg-red-700 text-white flex items-center justify-center whitespace-normal break-words" disabled={isLoading}>
+                {loadingAction === "delete" ? "Deleting..." : (
+                  <>
+                    <Trash2 />
+                    Delete Record
+                  </>
+                )}
+              </Button>
+            </div>
+          </CardFooter>
+        </Card>
+        
+        <PlanWeek />
+      </div>
 
       <RecentRecords recentEntries={recentEntries} />
     </div>

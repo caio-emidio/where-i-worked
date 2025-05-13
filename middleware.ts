@@ -24,14 +24,14 @@ export async function middleware(request: NextRequest) {
   console.log("Middleware path:", path);
   console.log("Session in middleware:", session?.user?.email ?? "No session");
 
-  if (session && path.startsWith("/login")) {
-    return NextResponse.redirect(new URL("/dashboard", request.url));
-  }
+  // if (session && path.startsWith("/login")) {
+  //   return NextResponse.redirect(new URL("/dashboard", request.url));
+  // }
 
-  // Uncomment to protect routes
-  if (!session && path.startsWith("/dashboard")) {
-    return NextResponse.redirect(new URL("/login", request.url));
-  }
+  // // Uncomment to protect routes
+  // if (!session && path.startsWith("/dashboard")) {
+  //   return NextResponse.redirect(new URL("/login", request.url));
+  // }
 
   return response;
 }

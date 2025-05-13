@@ -35,6 +35,7 @@ import { WorkEntry, WorkLocation } from "@/types/work-entry";
 import { getDistance } from 'geolib';
 import { RecentRecords } from "./recentRecords";
 import { PlanWeek } from "./planWeek";
+import { getPlanWeek } from "@/hooks/use-plan-week";
 const officeCoordinates = [{ latitude: 53.347807, longitude: -6.275438 }, { latitude: 53.349233, longitude: -6.245408 }]; // Example coordinates for your office
 const geofenceRadius = 100; // Geofence radius in meters
 
@@ -138,15 +139,17 @@ export function WorkTracker() {
               duration: 3000,
             });
             setSelectedLocation("office");
-          } else {
+          }
+
+          else {
             // Only update if the location changed (from office to home)
-            console.log("User is outside the office");
-            toast({
-              title: "Location: You are outside the office",
-              description: "Consider setting your location to 'Home'.",
-              variant: "info",
-              duration: 3000,
-            });
+            // console.log("User is outside the office");
+            // toast({
+            //   title: "Location: You are outside the office",
+            //   description: "Consider setting your location to 'Home'.",
+            //   variant: "info",
+            //   duration: 3000,
+            // });
             // setSelectedLocation("home");
           }
         },
@@ -169,7 +172,29 @@ export function WorkTracker() {
     }
   }, [selectedDate]);
 
+  useEffect(() => {
+    const fetchPlannedDays = async () => {
+      if (!user) return;
 
+      try {
+        const plannedDays = await getPlanWeek(selectedDate);
+
+        if (plannedDays && plannedDays.length > 0) {
+          toast({
+            title: "Planned: You plan to be at the office",
+            description: "Consider setting your location to 'Office'.",
+            variant: "info",
+            duration: 3000,
+          });
+          setSelectedLocation("office");
+        }
+      } catch (err) {
+        console.error("Unexpected error while fetching planned days:", err);
+      }
+    };
+
+    fetchPlannedDays();
+  }, [selectedDate, user]);
 
   // Check if there's an entry for the selected date
   useEffect(() => {
@@ -210,7 +235,7 @@ export function WorkTracker() {
         if (fetchError) throw fetchError;
         if (data) {
           setWorkEntries(
-            data.map((entry) => ({
+            data.map((entry: any) => ({
               ...entry,
               date: new Date(entry.date),
             }))
@@ -526,7 +551,7 @@ export function WorkTracker() {
             </div>
           </CardFooter>
         </Card>
-        
+
         <PlanWeek />
       </div>
 

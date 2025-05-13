@@ -13,8 +13,7 @@ interface DayButtonProps {
 // Calculate next 5 days starting from tomorrow
 const getWeekDays = () => {
     const today = new Date();
-    const tomorrow = addDays(today, 1); // Start from tomorrow
-    return Array.from({ length: 5 }, (_, i) => addDays(tomorrow, i)); // Next 5 days starting from tomorrow
+    return Array.from({ length: 7 }, (_, i) => addDays(today, i)); // Next 5 days starting from tomorrow
 };
 
 const weekDays = getWeekDays();
@@ -33,8 +32,8 @@ export const PlanWeek = () => {
                     {weekDays.map((date) => (
                         <DayButton
                             key={date.toISOString()}
-                            day={format(date, "EEEE")} // Day name (e.g., Monday)
-                            date={format(date, "dd/MM")} // Date in DD/MM/YYYY format
+                            day={format(date, "EEE")} // Day name (e.g., Monday)
+                            date={date}
                             onClick={() => null} // Set the selected date
                         />
                     ))}

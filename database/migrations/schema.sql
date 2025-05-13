@@ -22,3 +22,17 @@ CREATE TRIGGER set_updated_at
 BEFORE UPDATE ON public.work_entries
 FOR EACH ROW
 EXECUTE FUNCTION update_updated_at_column();
+
+
+-- Create a trigger to call the function periodically
+CREATE OR REPLACE FUNCTION periodic_cleanup()
+RETURNS VOID AS $$
+BEGIN
+  PERFORM delete_old_records();
+END;
+$$ LANGUAGE plpgsql;
+
+-- Schedule the trigger to run daily
+CREATE EXTENSION IF NOT EXISTS pg_cron;
+
+SELECT cron.schedule('daily_cleanup', '0 0 * * *', $$CALL periodic_cleanup()$$);

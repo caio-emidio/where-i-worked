@@ -193,6 +193,10 @@ export function WorkTracker() {
     if ( !user ) return;
     if ( !selectedDate ) return;
 
+    if ( checkStartIsAfterEnd() ) {
+      return; // Exit if the start date is after the end date
+    }
+
     setIsLoading( true );
     setLoadingAction( "delete" );
 
@@ -298,6 +302,10 @@ export function WorkTracker() {
       return;
     }
 
+    if ( checkStartIsAfterEnd() ) {
+      return; // Exit if the start date is after the end date
+    }
+
     setIsLoading( true );
     setLoadingAction( "save" );
 
@@ -392,6 +400,20 @@ export function WorkTracker() {
     }
   };
 
+  const checkStartIsAfterEnd = () => {
+    // check if end date is before start date
+    if ( rangeMode && rangeEndDate && selectedDate > rangeEndDate ) {
+      toast( {
+        title: "Error: Invalid date range",
+        description: "End date cannot be before start date.",
+        variant: "destructive",
+        duration: 3000,
+      } );
+      return true; // Exit if the start date is after the end date
+    }
+    return false; // No error, continue processing
+  }
+
   // Function to get recent entries (1st of the month till today)
   const getRecentEntries = () => {
     const year = selectedDate.getFullYear();
@@ -483,7 +505,7 @@ export function WorkTracker() {
                 >
                   <CalendarIcon className="mr-2 h-4 w-4" />
                   {selectedDate ? (
-                    format( selectedDate, "PPP", { locale: enIE } )
+                    format( selectedDate, "PP", { locale: enIE } )
                   ) : (
                     <span>Select a date</span>
                   )}
@@ -527,7 +549,7 @@ export function WorkTracker() {
                   >
                     <CalendarIcon className="mr-2 h-4 w-4" />
                     {rangeEndDate ? (
-                      format( rangeEndDate, "PPP", { locale: enIE } )
+                      format( rangeEndDate, "PP", { locale: enIE } )
                     ) : (
                       <span>End date</span>
                     )}
@@ -543,7 +565,7 @@ export function WorkTracker() {
                         setCalendarOpen( false );
                       }
                     }}
-                    selected={rangeEndDate}
+                    selected={rangeEndDate || new Date()}
                     locale={enIE}
                     modifiers={{
                       office: officeDates,

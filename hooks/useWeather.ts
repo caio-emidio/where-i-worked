@@ -21,8 +21,9 @@ export function useWeather() {
 						const data = await res.json();
 						setForecast( data.forecast ?? [] );
 					}
-				} catch {
-					// weather is optional — fail silently
+				} catch ( err ) {
+					// Weather is optional — log the error for debugging but don't surface it to the user.
+					console.error( "useWeather: failed to fetch forecast", err );
 				} finally {
 					setLoading( false );
 				}

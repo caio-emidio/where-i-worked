@@ -67,7 +67,7 @@ export function WorkTracker() {
     const today = startOfDay( new Date() );
     const forecastMap = new Map( forecast.map( ( d ) => [d.date, d] ) );
     const days: { date: Date; dateStr: string; condition: WeatherCondition; good: boolean }[] = [];
-    for ( let i = 0; i <= 7; i++ ) {
+    for ( let i = 0; i < 7; i++ ) {
       const d = addDays( today, i );
       if ( isWeekend( d ) ) continue;
       const dateStr = format( d, "yyyy-MM-dd" );

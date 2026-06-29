@@ -36,6 +36,7 @@ export async function GET( request: NextRequest ) {
 
 	let res: Response;
 	try {
+		// Cache for 1 hour — weather forecasts don't need to update more frequently.
 		res = await fetch( url, { next: { revalidate: 3600 } } );
 	} catch {
 		return NextResponse.json( { error: "Failed to reach weather service" }, { status: 502 } );

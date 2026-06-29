@@ -42,7 +42,7 @@ function WeatherIcon( { condition, className }: { condition: WeatherCondition; c
 function makeWeatherDayContent( forecastMap: Map<string, WeatherDay> ) {
 	return function WeatherDayContent( { date }: DayContentProps ) {
 		const today = startOfDay( new Date() );
-		const until = addDays( today, 7 );
+		const until = addDays( today, 6 );
 		const d = startOfDay( date );
 		const dateStr = format( date, "yyyy-MM-dd" );
 		const weather = ( d >= today && d <= until ) ? forecastMap.get( dateStr ) : undefined;

@@ -258,7 +258,7 @@ export function WorkStats() {
   // Calculate goal as 50% of weekdays in the selected period
   const periodWeekdays = (() => {
     let count = 0
-    const current = new Date(dateRange.start)
+    const current = new Date(dateRange.start.getTime())
     while (current <= dateRange.end) {
       if (!isWeekend(current)) count++
       current.setDate(current.getDate() + 1)

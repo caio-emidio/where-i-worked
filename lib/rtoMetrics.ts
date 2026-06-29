@@ -1,5 +1,7 @@
 import { addDays, isAfter, isWeekend, startOfDay } from "date-fns"
 
+export const RTO_TARGET_PERCENTAGE = 50
+
 export type PaceStatus = "ahead" | "on-pace" | "behind"
 
 /**
@@ -54,7 +56,7 @@ export type RtoSummary = {
  * Derives the key RTO metrics displayed in the dashboard cards.
  *
  * @param officeDaysToday  - Office days recorded up to (and including) today.
- * @param goalDays         - Total office days required to hit the 50 % target.
+ * @param goalDays         - Total office days required to hit the 50% target.
  * @param expectedByToday  - Expected office days at today's point on the pace curve.
  * @param periodEnd        - Last day of the tracked period.
  * @param today            - Reference date (defaults to now).

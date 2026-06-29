@@ -1,7 +1,7 @@
 import { CalendarIcon, Target, TrendingUp } from "lucide-react"
 
 import { Card, CardContent } from "@/components/ui/card"
-import { type PaceStatus, type RtoSummary } from "@/lib/rtoMetrics"
+import { RTO_TARGET_PERCENTAGE, type PaceStatus, type RtoSummary } from "@/lib/rtoMetrics"
 
 type RtoMetricsCardsProps = RtoSummary & {
   /** Total countable days in the period (used for the "of N" footer). */
@@ -52,7 +52,7 @@ export function RtoMetricsCards({
             <p className="text-4xl font-bold leading-none" aria-label={`${requiredRemaining} office days required`}>
               {requiredRemaining}
             </p>
-            <p className="text-xs text-muted-foreground">office days to hit 50%.</p>
+            <p className="text-xs text-muted-foreground">office days to hit {RTO_TARGET_PERCENTAGE}%.</p>
           </CardContent>
         </Card>
 

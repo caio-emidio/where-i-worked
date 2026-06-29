@@ -3,6 +3,8 @@ import { addDays, differenceInCalendarDays, format, isAfter, isBefore, isWithinI
 import { Location, WorkEntry } from "./calculateStats"
 
 export const OFFICE_GOAL_DAYS = 25
+export const DAYS_PER_WEEK = 7
+export const MAX_PLANNED_OFFICE_DAYS_PER_WEEK = 5
 
 export type PaceProjectionPoint = {
   date: string
@@ -45,7 +47,10 @@ export function calculateDefaultPlannedDaysPerWeek(workEntries: WorkEntry[], sta
     return 0
   }
 
-  return Math.min(5, Number(((officeDaysSoFar / elapsedCalendarDays) * 7).toFixed(1)))
+  return Math.min(
+    MAX_PLANNED_OFFICE_DAYS_PER_WEEK,
+    Number(((officeDaysSoFar / elapsedCalendarDays) * DAYS_PER_WEEK).toFixed(1)),
+  )
 }
 
 export function buildPaceProjectionData({
@@ -79,7 +84,7 @@ export function buildPaceProjectionData({
   )
 
   const totalCalendarDays = Math.max(differenceInCalendarDays(normalizedEnd, normalizedStart), 1)
-  const dailyProjectionRate = plannedDaysPerWeek / 7
+  const dailyProjectionRate = plannedDaysPerWeek / DAYS_PER_WEEK
 
   let cumulativeOfficeDays = 0
   let officeDaysToday = 0

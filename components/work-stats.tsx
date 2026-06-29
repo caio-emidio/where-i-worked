@@ -32,7 +32,12 @@ import { useAuth } from "@/contexts/auth-context"
 import { useToast } from "@/hooks/use-toast"
 import { useTheme } from "next-themes"
 import { calculateStats, WorkEntry } from "@/lib/calculateStats"
-import { buildPaceProjectionData, calculateDefaultPlannedDaysPerWeek, OFFICE_GOAL_DAYS } from "@/lib/paceProjection"
+import {
+  buildPaceProjectionData,
+  calculateDefaultPlannedDaysPerWeek,
+  MAX_PLANNED_OFFICE_DAYS_PER_WEEK,
+  OFFICE_GOAL_DAYS,
+} from "@/lib/paceProjection"
 
 export type DateRange = {
   start: Date
@@ -452,19 +457,21 @@ export function WorkStats() {
                       <label className="text-sm font-medium">
                         Planning: How many times do you plan to go to the office per week from now on?
                       </label>
-                      <span className="text-sm font-semibold">{plannedOfficeDaysPerWeek.toFixed(1)}/5</span>
+                      <span className="text-sm font-semibold">
+                        {plannedOfficeDaysPerWeek.toFixed(1)}/{MAX_PLANNED_OFFICE_DAYS_PER_WEEK}
+                      </span>
                     </div>
                     <Slider
                       value={[plannedOfficeDaysPerWeek]}
                       min={0}
-                      max={5}
+                      max={MAX_PLANNED_OFFICE_DAYS_PER_WEEK}
                       step={0.1}
                       onValueChange={([value]) => setPlannedOfficeDaysPerWeek(value)}
                       aria-label="Planned office days per week"
                     />
                     <div className="flex justify-between text-xs text-muted-foreground">
                       <span>0</span>
-                      <span>5</span>
+                      <span>{MAX_PLANNED_OFFICE_DAYS_PER_WEEK}</span>
                     </div>
                   </div>
 

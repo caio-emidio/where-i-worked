@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, use } from "react"
+import { useState, useEffect } from "react"
 import {
   format,
   startOfWeek,
@@ -18,18 +18,25 @@ import {
 import { enIE } from "date-fns/locale"
 import { Building2, Home, CalendarIcon, CalendarPlus2Icon as CalendarIcon2, ChevronLeft, ChevronRight } from "lucide-react"
 
+import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
-import { PieChart, Pie, Cell, ResponsiveContainer, Legend, Tooltip } from "recharts"
+import { Slider } from "@/components/ui/slider"
+import { CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import { Separator } from "@/components/ui/separator"
 import { createClientSupabaseClient } from "@/lib/supabase/client"
 import { useAuth } from "@/contexts/auth-context"
 import { useToast } from "@/hooks/use-toast"
 import { useTheme } from "next-themes"
-import { calculateStats, WorkEntry } from "@/lib/calculateStats"
+import { calculateStats, Location, WorkEntry } from "@/lib/calculateStats"
+import {
+  buildPaceProjectionData,
+  calculateDefaultPlannedDaysPerWeek,
+  MAX_PLANNED_OFFICE_DAYS_PER_WEEK,
+} from "@/lib/paceProjection"
 
 export type DateRange = {
   start: Date
@@ -46,6 +53,7 @@ export function WorkStats() {
   const [customStartDate, setCustomStartDate] = useState<Date | null>()
   const [customEndDate, setCustomEndDate] = useState<Date | null>()
   const [isLoading, setIsLoading] = useState(false)
+  const [plannedOfficeDaysPerWeek, setPlannedOfficeDaysPerWeek] = useState(0)
   const { user } = useAuth()
   const { toast } = useToast()
   const supabase = createClientSupabaseClient()
@@ -247,6 +255,47 @@ export function WorkStats() {
 
   const stats = calculateStats(workEntries, dateRange)
 
+  // Calculate goal as 50% of available working weekdays in the selected period
+  // (total weekdays minus time_off weekday entries, matching how calculateStats works)
+  const periodWeekdays = (() => {
+    let count = 0
+    const current = new Date(dateRange.start.getTime())
+    while (current <= dateRange.end) {
+      if (!isWeekend(current)) count++
+      current.setDate(current.getDate() + 1)
+    }
+    return count
+  })()
+  const timeOffWeekdays = workEntries.filter((entry) => {
+    const d = startOfDay(entry.date)
+    return (
+      entry.location === Location.TIME_OFF &&
+      !isWeekend(d) &&
+      d >= startOfDay(dateRange.start) &&
+      d <= startOfDay(dateRange.end)
+    )
+  }).length
+  const goalDays = Math.round((periodWeekdays - timeOffWeekdays) * 0.5)
+
+  const defaultPlannedOfficeDaysPerWeek = calculateDefaultPlannedDaysPerWeek(workEntries, dateRange.start)
+
+  useEffect(() => {
+    setPlannedOfficeDaysPerWeek(defaultPlannedOfficeDaysPerWeek)
+  }, [defaultPlannedOfficeDaysPerWeek])
+
+  const paceProjection = buildPaceProjectionData({
+    workEntries,
+    start: dateRange.start,
+    end: dateRange.end,
+    plannedDaysPerWeek: plannedOfficeDaysPerWeek,
+    goalDays,
+  })
+  const paceProjectionMaxValue = Math.max(
+    goalDays,
+    Math.ceil(paceProjection.projectedOfficeDaysAtDeadline),
+    paceProjection.officeDaysToday,
+  ) + 2
+
   // Prepare data for pie chart - excluding time_off
   const chartData = [
     { name: "Office", value: stats.officeCount, percent: stats.officePercentage, color: "hsl(var(--primary))" },
@@ -368,6 +417,95 @@ export function WorkStats() {
                 </div>
               )
               }
+
+              <Card className="mb-6 text-left">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-base">Pace vs Goal</CardTitle>
+                  <CardDescription>
+                    Track your progress from {format(dateRange.start, "MMM d", { locale: enIE })} to{" "}
+                    {format(dateRange.end, "MMM d", { locale: enIE })} against the {goalDays}-day (50%) office goal.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <div className="h-72">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={paceProjection.points} margin={{ top: 8, right: 12, left: -16, bottom: 8 }}>
+                        <CartesianGrid strokeDasharray="3 3" />
+                        <XAxis dataKey="label" minTickGap={24} interval="preserveStartEnd" />
+                        <YAxis allowDecimals={false} domain={[0, paceProjectionMaxValue]} />
+                        <Tooltip />
+                        <Legend />
+                        <ReferenceLine
+                          x={paceProjection.points.find((point) => point.isToday)?.label}
+                          stroke="#94a3b8"
+                          strokeDasharray="4 4"
+                          label={{ value: "Today", position: "insideTopRight", fill: "#64748b", fontSize: 12 }}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="actualOfficeDays"
+                          name="Actual office days"
+                          stroke="hsl(var(--primary))"
+                          strokeWidth={2}
+                          dot={false}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="expectedOfficeDays"
+                          name="Expected pace"
+                          stroke="#94a3b8"
+                          strokeWidth={2}
+                          strokeDasharray="6 4"
+                          dot={false}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="projectedOfficeDays"
+                          name="What-if projection"
+                          stroke="#38bdf8"
+                          strokeWidth={2}
+                          strokeDasharray="3 4"
+                          dot={false}
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between gap-3">
+                      <label className="text-sm font-medium">
+                        Planning: How many times do you plan to go to the office per week from now on?
+                      </label>
+                      <span className="text-sm font-semibold">
+                        {plannedOfficeDaysPerWeek.toFixed(1)}/{MAX_PLANNED_OFFICE_DAYS_PER_WEEK}
+                      </span>
+                    </div>
+                    <Slider
+                      value={[plannedOfficeDaysPerWeek]}
+                      min={0}
+                      max={MAX_PLANNED_OFFICE_DAYS_PER_WEEK}
+                      step={0.1}
+                      onValueChange={([value]) => setPlannedOfficeDaysPerWeek(value)}
+                      aria-label="Planned office days per week"
+                    />
+                    <div className="flex justify-between text-xs text-muted-foreground">
+                      <span>0</span>
+                      <span>{MAX_PLANNED_OFFICE_DAYS_PER_WEEK}</span>
+                    </div>
+                  </div>
+
+                  <Badge
+                    variant="outline"
+                    className={
+                      paceProjection.goalMet
+                        ? "border-emerald-500/40 bg-emerald-500/10 text-emerald-700 dark:text-emerald-300"
+                        : "border-amber-500/40 bg-amber-500/10 text-amber-700 dark:text-amber-300"
+                    }
+                  >
+                    {paceProjection.goalMet ? "🎉 Goal will be achieved!" : "⚠️ Adjustment needed to reach goal"}
+                  </Badge>
+                </CardContent>
+              </Card>
 
               {stats.totalWorkDaysExcludingTimeOff > 0 ? (
                 <>

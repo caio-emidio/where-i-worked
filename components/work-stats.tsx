@@ -8,13 +8,15 @@ import {
   startOfMonth,
   endOfMonth,
   isWithinInterval,
-  subMonths,
+  addWeeks,
+  addMonths,
   addDays,
   isWeekend,
   startOfDay,
+  getISOWeek,
 } from "date-fns"
 import { enIE } from "date-fns/locale"
-import { Building2, Home, CalendarIcon, CalendarPlus2Icon as CalendarIcon2 } from "lucide-react"
+import { Building2, Home, CalendarIcon, CalendarPlus2Icon as CalendarIcon2, ChevronLeft, ChevronRight } from "lucide-react"
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
@@ -39,6 +41,7 @@ type PeriodType = "week" | "month" | "quarter" | "custom"
 export function WorkStats() {
   const [workEntries, setWorkEntries] = useState<WorkEntry[]>([])
   const [periodType, setPeriodType] = useState<PeriodType>("quarter")
+  const [periodOffset, setPeriodOffset] = useState(0)
   const [customRange, setCustomRange] = useState<DateRange | null>(null)
   const [customStartDate, setCustomStartDate] = useState<Date | null>()
   const [customEndDate, setCustomEndDate] = useState<Date | null>()
@@ -149,17 +152,20 @@ export function WorkStats() {
 
     switch (periodType) {
       case "week":
+        const baseWeekDate = addWeeks(today, periodOffset)
         return {
-          start: startOfWeek(today, { locale: enIE }),
-          end: endOfWeek(today, { locale: enIE }),
+          start: startOfWeek(baseWeekDate, { locale: enIE }),
+          end: endOfWeek(baseWeekDate, { locale: enIE }),
         }
       case "month":
+        const baseMonthDate = addMonths(today, periodOffset)
         return {
-          start: startOfMonth(today),
-          end: endOfMonth(today),
+          start: startOfMonth(baseMonthDate),
+          end: endOfMonth(baseMonthDate),
         }
       case "quarter":
-        const { start, end } = getCustomQuarterRange(today);
+        const baseQuarterDate = addMonths(today, periodOffset * 3)
+        const { start, end } = getCustomQuarterRange(baseQuarterDate);
         return {
           start: start,
           end: end,
@@ -176,6 +182,21 @@ export function WorkStats() {
           start: startOfWeek(today, { locale: enIE }),
           end: endOfWeek(today, { locale: enIE }),
         }
+    }
+  }
+
+  // Get a human-readable label for the current period
+  const getPeriodLabel = (): string => {
+    const range = getCurrentDateRange()
+    switch (periodType) {
+      case "week":
+        return `Week ${getISOWeek(range.start)}, ${format(range.start, "yyyy")}`
+      case "month":
+        return format(range.start, "MMMM yyyy")
+      case "quarter":
+        return `${format(range.start, "MMM")} – ${format(range.end, "MMM yyyy")}`
+      default:
+        return ""
     }
   }
 
@@ -218,7 +239,7 @@ export function WorkStats() {
         duration: 3000,
       });
     }
-  }, [periodType, workEntries]);
+  }, [periodType, periodOffset, workEntries]);
 
   // Get the current date range based on the selected period
   const dateRange = getCurrentDateRange()
@@ -243,7 +264,7 @@ export function WorkStats() {
           <div className="space-y-4">
             <div>
               <label className="text-sm font-medium mb-1.5 block">Period</label>
-              <Select value={periodType} onValueChange={(periodType) => setPeriodType(periodType as PeriodType)}>
+              <Select value={periodType} onValueChange={(val) => { setPeriodType(val as PeriodType); setPeriodOffset(0); }}>
                 <SelectTrigger>
                   <SelectValue placeholder="Select a period" />
                 </SelectTrigger>
@@ -255,6 +276,29 @@ export function WorkStats() {
                 </SelectContent>
               </Select>
             </div>
+
+            {periodType !== "custom" && (
+              <div className="flex items-center justify-between gap-2">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setPeriodOffset((prev) => prev - 1)}
+                  aria-label="Previous period"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </Button>
+                <span className="text-sm font-medium text-center flex-1">{getPeriodLabel()}</span>
+                <Button
+                  variant="outline"
+                  size="icon"
+                  onClick={() => setPeriodOffset((prev) => prev + 1)}
+                  disabled={periodOffset === 0}
+                  aria-label="Next period"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
 
             {periodType === "custom" && (
               <div className="space-y-4">

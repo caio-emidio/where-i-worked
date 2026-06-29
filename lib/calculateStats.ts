@@ -29,11 +29,7 @@ export function calculateStats(workEntries: WorkEntry[], dateRange: { start: Dat
 
     const officeCount = workEntriesOnly.filter((entry) => entry.location === Location.OFFICE).length
     const homeCount = workEntriesOnly.filter((entry) => entry.location === Location.HOME).length
-    const totalWorkDaysExcludingTimeOff = entriesInRange.filter((entry) =>
-        // Filter out weekends and time_off entries
-        !isWeekend(entry.date) &&
-        entry.location !== Location.TIME_OFF
-    ).length
+    const totalWorkDaysExcludingTimeOff = workEntriesOnly.length
 
     // Count time_off days separately (not included in percentages)
     const timeOffCount = entriesInRange.filter((entry) => entry.location === Location.TIME_OFF).length

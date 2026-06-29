@@ -49,9 +49,9 @@ describe("calculateStats - Monthly Range with Weekend Office Days", () => {
         expect(stats.officeCount).toBe(13); // 11 weekdays + 2 Saturdays
         expect(stats.homeCount).toBe(8);
         expect(stats.timeOffCount).toBe(3);
-        expect(stats.totalWorkDaysExcludingTimeOff).toBe(19); // excludes 3 time_off
-        expect(stats.officePercentage).toBeCloseTo((13 / 19) * 100, 1);
-        expect(stats.homePercentage).toBeCloseTo((8 / 19) * 100, 1);
+        expect(stats.totalWorkDaysExcludingTimeOff).toBe(21); // 13 office + 8 home (weekdays + weekend work days, excludes 3 time_off)
+        expect(stats.officePercentage).toBeCloseTo((13 / 21) * 100, 1);
+        expect(stats.homePercentage).toBeCloseTo((8 / 21) * 100, 1);
         expect(stats.weekEndEntriesCount).toBe(2); // two Saturdays
     });
 });

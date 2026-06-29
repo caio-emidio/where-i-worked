@@ -36,7 +36,6 @@ import {
   buildPaceProjectionData,
   calculateDefaultPlannedDaysPerWeek,
   MAX_PLANNED_OFFICE_DAYS_PER_WEEK,
-  OFFICE_GOAL_DAYS,
 } from "@/lib/paceProjection"
 
 export type DateRange = {
@@ -255,11 +254,20 @@ export function WorkStats() {
   // console.log("dateRange", dateRange)
 
   const stats = calculateStats(workEntries, dateRange)
-  const paceGoalDateRange = {
-    start: new Date(new Date().getFullYear(), 4, 1),
-    end: new Date(new Date().getFullYear(), 6, 31),
-  }
-  const defaultPlannedOfficeDaysPerWeek = calculateDefaultPlannedDaysPerWeek(workEntries, paceGoalDateRange.start)
+
+  // Calculate goal as 50% of weekdays in the selected period
+  const periodWeekdays = (() => {
+    let count = 0
+    const current = new Date(dateRange.start)
+    while (current <= dateRange.end) {
+      if (!isWeekend(current)) count++
+      current.setDate(current.getDate() + 1)
+    }
+    return count
+  })()
+  const goalDays = Math.round(periodWeekdays * 0.5)
+
+  const defaultPlannedOfficeDaysPerWeek = calculateDefaultPlannedDaysPerWeek(workEntries, dateRange.start)
 
   useEffect(() => {
     setPlannedOfficeDaysPerWeek(defaultPlannedOfficeDaysPerWeek)
@@ -267,12 +275,13 @@ export function WorkStats() {
 
   const paceProjection = buildPaceProjectionData({
     workEntries,
-    start: paceGoalDateRange.start,
-    end: paceGoalDateRange.end,
+    start: dateRange.start,
+    end: dateRange.end,
     plannedDaysPerWeek: plannedOfficeDaysPerWeek,
+    goalDays,
   })
   const paceProjectionMaxValue = Math.max(
-    OFFICE_GOAL_DAYS,
+    goalDays,
     Math.ceil(paceProjection.projectedOfficeDaysAtDeadline),
     paceProjection.officeDaysToday,
   ) + 2
@@ -403,8 +412,8 @@ export function WorkStats() {
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base">Pace vs Goal</CardTitle>
                   <CardDescription>
-                    Track your progress from {format(paceGoalDateRange.start, "MMM d", { locale: enIE })} to{" "}
-                    {format(paceGoalDateRange.end, "MMM d", { locale: enIE })} against the {OFFICE_GOAL_DAYS}-day office goal.
+                    Track your progress from {format(dateRange.start, "MMM d", { locale: enIE })} to{" "}
+                    {format(dateRange.end, "MMM d", { locale: enIE })} against the {goalDays}-day (50%) office goal.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">

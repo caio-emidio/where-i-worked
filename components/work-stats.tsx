@@ -31,7 +31,7 @@ import { createClientSupabaseClient } from "@/lib/supabase/client"
 import { useAuth } from "@/contexts/auth-context"
 import { useToast } from "@/hooks/use-toast"
 import { useTheme } from "next-themes"
-import { calculateStats, WorkEntry } from "@/lib/calculateStats"
+import { calculateStats, Location, WorkEntry } from "@/lib/calculateStats"
 import {
   buildPaceProjectionData,
   calculateDefaultPlannedDaysPerWeek,
@@ -255,7 +255,8 @@ export function WorkStats() {
 
   const stats = calculateStats(workEntries, dateRange)
 
-  // Calculate goal as 50% of weekdays in the selected period
+  // Calculate goal as 50% of available working weekdays in the selected period
+  // (total weekdays minus time_off weekday entries, matching how calculateStats works)
   const periodWeekdays = (() => {
     let count = 0
     const current = new Date(dateRange.start.getTime())
@@ -265,7 +266,16 @@ export function WorkStats() {
     }
     return count
   })()
-  const goalDays = Math.round(periodWeekdays * 0.5)
+  const timeOffWeekdays = workEntries.filter((entry) => {
+    const d = startOfDay(entry.date)
+    return (
+      entry.location === Location.TIME_OFF &&
+      !isWeekend(d) &&
+      d >= startOfDay(dateRange.start) &&
+      d <= startOfDay(dateRange.end)
+    )
+  }).length
+  const goalDays = Math.round((periodWeekdays - timeOffWeekdays) * 0.5)
 
   const defaultPlannedOfficeDaysPerWeek = calculateDefaultPlannedDaysPerWeek(workEntries, dateRange.start)
 

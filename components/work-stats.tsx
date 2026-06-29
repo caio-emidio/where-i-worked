@@ -37,6 +37,8 @@ import {
   calculateDefaultPlannedDaysPerWeek,
   MAX_PLANNED_OFFICE_DAYS_PER_WEEK,
 } from "@/lib/paceProjection"
+import { calculateRtoSummary } from "@/lib/rtoMetrics"
+import { RtoMetricsCards } from "@/components/rto-metrics-cards"
 
 export type DateRange = {
   start: Date
@@ -296,6 +298,19 @@ export function WorkStats() {
     paceProjection.officeDaysToday,
   ) + 2
 
+  // Derive expected-by-today from the pace projection curve
+  const expectedByToday =
+    paceProjection.points.find((point) => point.isToday)?.expectedOfficeDays ?? 0
+
+  const rtoSummary = calculateRtoSummary({
+    officeDaysToday: paceProjection.officeDaysToday,
+    goalDays,
+    expectedByToday,
+    periodEnd: dateRange.end,
+  })
+
+  const totalCountableDays = periodWeekdays - timeOffWeekdays
+
   // Prepare data for pie chart - excluding time_off
   const chartData = [
     { name: "Office", value: stats.officeCount, percent: stats.officePercentage, color: "hsl(var(--primary))" },
@@ -506,6 +521,15 @@ export function WorkStats() {
                   </Badge>
                 </CardContent>
               </Card>
+
+              {/* RTO Metrics summary cards */}
+              <RtoMetricsCards
+                {...rtoSummary}
+                totalCountableDays={totalCountableDays}
+                expectedByToday={expectedByToday}
+                officeDaysToday={paceProjection.officeDaysToday}
+                goalDays={goalDays}
+              />
 
               {stats.totalWorkDaysExcludingTimeOff > 0 ? (
                 <>

@@ -1,7 +1,7 @@
 "use client"
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { WorkTracker } from "@/components/work-tracker"
+import { WorkTracker } from "@/components/workTracker/workTracker"
 import { WorkStats } from "@/components/work-stats"
 
 export default function DashboardPage() {

@@ -13,7 +13,7 @@ type Props = {
   recentEntries: WorkEntry[]
 }
 
-export function RecentRecords({ recentEntries }: Props) {
+export function RecentRecords( { recentEntries }: Props ) {
   return (
     <Card className="md:w-2/3">
       <CardHeader>
@@ -22,13 +22,13 @@ export function RecentRecords({ recentEntries }: Props) {
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
-          {recentEntries.map((entry, index) => (
+          {recentEntries.map( ( entry, index ) => (
             <div
               key={index}
               className="flex items-center justify-between p-3 border rounded-md"
             >
               <span className="font-medium">
-                {format(new Date(entry.date), "EEEE, MM/dd", { locale: enIE })}
+                {format( new Date( entry.date ), "EEEE, MM/dd", { locale: enIE } )}
               </span>
               {entry.location ? (
                 <Badge
@@ -38,8 +38,8 @@ export function RecentRecords({ recentEntries }: Props) {
                     entry.location === "office"
                       ? "bg-primary/10 text-primary border-primary/20"
                       : entry.location === "home"
-                      ? "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border-yellow-500/20"
-                      : "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20"
+                        ? "bg-yellow-500/10 text-yellow-700 dark:text-yellow-400 border-yellow-500/20"
+                        : "bg-blue-500/10 text-blue-700 dark:text-blue-400 border-blue-500/20"
                   )}
                 >
                   {entry.location === "office" ? (
@@ -63,7 +63,7 @@ export function RecentRecords({ recentEntries }: Props) {
                 <span className="text-muted-foreground text-sm">Not recorded</span>
               )}
             </div>
-          ))}
+          ) )}
         </div>
       </CardContent>
     </Card>

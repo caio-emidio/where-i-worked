@@ -16,41 +16,41 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/auth-context";
-import { ThemeToggle } from "@/components/theme-toggle"; // ajuste o caminho se necessário
+import { ThemeToggle } from "@/components/theme/theme-toggle"; // ajuste o caminho se necessário
 import { Github } from "lucide-react";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const [email, setEmail] = useState( "" );
+  const [password, setPassword] = useState( "" );
+  const [isLoading, setIsLoading] = useState( false );
   const { toast } = useToast();
   const { signIn } = useAuth();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async ( e: React.FormEvent ) => {
     e.preventDefault();
-    setIsLoading(true);
+    setIsLoading( true );
 
     try {
-      const { error, success } = await signIn(email, password);
+      const { error, success } = await signIn( email, password );
 
-      if (error) {
-        toast({
+      if ( error ) {
+        toast( {
           title: "Login error",
           description: error.message,
           variant: "destructive",
-        });
+        } );
         return;
       }
 
-      if (success) {
-        toast({
+      if ( success ) {
+        toast( {
           title: "Login successful",
           description: "Welcome back!",
-        });
+        } );
         window.location.href = "/dashboard";
       }
     } finally {
-      setIsLoading(false);
+      setIsLoading( false );
     }
   };
 
@@ -98,7 +98,7 @@ export default function LoginPage() {
                   type="email"
                   placeholder="ben@adams.com"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={( e ) => setEmail( e.target.value )}
                   required
                 />
               </div>
@@ -119,7 +119,7 @@ export default function LoginPage() {
                   type="password"
                   placeholder="••••••••"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={( e ) => setPassword( e.target.value )}
                   required
                 />
               </div>

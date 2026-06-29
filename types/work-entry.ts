@@ -5,4 +5,4 @@ export interface WorkEntry {
   user_id?: string;
 }
 
-export type WorkLocation = "office" | "home" | "time_off" | null;
+export type WorkLocation = "office" | "home" | "time_off"; 

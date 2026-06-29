@@ -10,44 +10,44 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/contexts/auth-context"
-import { ThemeToggle } from "@/components/theme-toggle"
+import { ThemeToggle } from "@/components/theme/theme-toggle"
 
 export default function ForgotPasswordPage() {
-  const [email, setEmail] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const [resetSent, setResetSent] = useState(false)
+  const [email, setEmail] = useState( "" )
+  const [isLoading, setIsLoading] = useState( false )
+  const [resetSent, setResetSent] = useState( false )
   const { toast } = useToast()
   const { resetPassword } = useAuth()
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async ( e: React.FormEvent ) => {
     e.preventDefault()
-    setIsLoading(true)
+    setIsLoading( true )
 
     try {
-      const { error, success } = await resetPassword(email)
+      const { error, success } = await resetPassword( email )
 
-      if (error) {
-        toast({
+      if ( error ) {
+        toast( {
           title: "Error sending recovery email",
           description: error.message,
           variant: "destructive",
-        })
+        } )
         return
       }
 
-      if (success) {
-        setResetSent(true)
-        toast({
+      if ( success ) {
+        setResetSent( true )
+        toast( {
           title: "Email sent",
           description: "Check your inbox for the password reset link.",
-        })
+        } )
       }
     } finally {
-      setIsLoading(false)
+      setIsLoading( false )
     }
   }
 
-  if (resetSent) {
+  if ( resetSent ) {
     return (
       <div className="relative flex min-h-screen items-center justify-center bg-cover bg-center" style={{ backgroundImage: "url('/bg.png')" }}>
         <div className="absolute inset-0 bg-black/60 z-0 backdrop-blur-md md:backdrop-blur-none" />
@@ -99,7 +99,7 @@ export default function ForgotPasswordPage() {
                   type="email"
                   placeholder="your@email.com"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={( e ) => setEmail( e.target.value )}
                   required
                 />
               </div>

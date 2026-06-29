@@ -9,56 +9,56 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/contexts/auth-context"
-import { ThemeToggle } from "@/components/theme-toggle"
+import { ThemeToggle } from "@/components/theme/theme-toggle"
 
 export default function SignupPage() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
-  const [signupSuccess, setSignupSuccess] = useState(false)
+  const [email, setEmail] = useState( "" )
+  const [password, setPassword] = useState( "" )
+  const [confirmPassword, setConfirmPassword] = useState( "" )
+  const [isLoading, setIsLoading] = useState( false )
+  const [signupSuccess, setSignupSuccess] = useState( false )
   const { toast } = useToast()
   const { signUp } = useAuth()
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async ( e: React.FormEvent ) => {
     e.preventDefault()
 
-    if (password !== confirmPassword) {
-      toast({
+    if ( password !== confirmPassword ) {
+      toast( {
         title: "Passwords don't match",
         description: "Please make sure both passwords are the same.",
         variant: "destructive",
-      })
+      } )
       return
     }
 
-    setIsLoading(true)
+    setIsLoading( true )
 
     try {
-      const { error, success } = await signUp(email, password)
+      const { error, success } = await signUp( email, password )
 
-      if (error) {
-        toast({
+      if ( error ) {
+        toast( {
           title: "Error creating account",
           description: error.message,
           variant: "destructive",
-        })
+        } )
         return
       }
 
-      if (success) {
-        setSignupSuccess(true)
-        toast({
+      if ( success ) {
+        setSignupSuccess( true )
+        toast( {
           title: "Account created successfully",
           description: "Please check your email to confirm your account.",
-        })
+        } )
       }
     } finally {
-      setIsLoading(false)
+      setIsLoading( false )
     }
   }
 
-  if (signupSuccess) {
+  if ( signupSuccess ) {
     return (
       <div className="flex min-h-screen items-center justify-center px-4 py-12 bg-black">
         <Card className="w-full max-w-md">
@@ -84,7 +84,7 @@ export default function SignupPage() {
   return (
     <div className="relative flex min-h-screen items-center justify-center bg-cover bg-center" style={{ backgroundImage: "url('/bg.png')" }}>
       <div className="absolute inset-0 bg-black/60 z-0 backdrop-blur-md" />
-      
+
       <div className="absolute top-4 right-4 z-[100] text-white cursor-pointer">
         <ThemeToggle />
       </div>
@@ -109,7 +109,7 @@ export default function SignupPage() {
                   type="email"
                   placeholder="your@email.com"
                   value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  onChange={( e ) => setEmail( e.target.value )}
                   required
                 />
               </div>
@@ -120,7 +120,7 @@ export default function SignupPage() {
                   type="password"
                   placeholder="••••••••"
                   value={password}
-                  onChange={(e) => setPassword(e.target.value)}
+                  onChange={( e ) => setPassword( e.target.value )}
                   required
                 />
               </div>
@@ -131,7 +131,7 @@ export default function SignupPage() {
                   type="password"
                   placeholder="••••••••"
                   value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  onChange={( e ) => setConfirmPassword( e.target.value )}
                   required
                 />
               </div>

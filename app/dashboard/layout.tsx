@@ -8,24 +8,24 @@ import { useAuth } from "@/contexts/auth-context"
 import { Button } from "@/components/ui/button"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Skeleton } from "@/components/ui/skeleton"
-import { ThemeToggle } from "@/components/theme-toggle"
+import { ThemeToggle } from "@/components/theme/theme-toggle"
 
-export default function DashboardLayout({
+export default function DashboardLayout( {
   children,
 }: {
   children: React.ReactNode
-}) {
+} ) {
   const { user, isLoading, signOut } = useAuth()
 
-  useEffect(() => {
-    console.log("Dashboard layout - Auth state:", {
+  useEffect( () => {
+    console.log( "Dashboard layout - Auth state:", {
       user: user?.email,
       isLoading,
-    })
-  }, [isLoading, user])
+    } )
+  }, [isLoading, user] )
 
-  if (isLoading) {
-    console.log("Dashboard layout - Still loading auth state")
+  if ( isLoading ) {
+    console.log( "Dashboard layout - Still loading auth state" )
     return (
       <div className="flex min-h-screen flex-col">
         <header className="sticky top-0 z-10 border-b bg-background">
@@ -49,7 +49,7 @@ export default function DashboardLayout({
   // Let middleware handle redirects if not authenticated
   // Don't add additional redirects here
 
-  console.log("Dashboard layout - Rendering dashboard for user:", user?.email)
+  console.log( "Dashboard layout - Rendering dashboard for user:", user?.email )
   return (
     <div className="flex min-h-screen flex-col">
       <header className="sticky top-0 z-10 border-b bg-background">
@@ -70,9 +70,9 @@ export default function DashboardLayout({
               <DropdownMenuContent align="end">
                 <DropdownMenuItem
                   onClick={() => {
-                    signOut().then(() => {
+                    signOut().then( () => {
                       window.location.href = "/login"
-                    })
+                    } )
                   }}
                 >
                   <LogOut className="mr-2 h-4 w-4" />

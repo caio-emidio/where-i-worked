@@ -25,13 +25,13 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
 import { Slider } from "@/components/ui/slider"
-import { CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
+import { Bar, BarChart, CartesianGrid, Cell, Legend, Line, LineChart, Pie, PieChart, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import { Separator } from "@/components/ui/separator"
 import { createClientSupabaseClient } from "@/lib/supabase/client"
 import { useAuth } from "@/contexts/auth-context"
 import { useToast } from "@/hooks/use-toast"
 import { useTheme } from "next-themes"
-import { calculateStats, Location, WorkEntry } from "@/lib/calculateStats"
+import { calculateStats, calculateWeekdayStats, Location, WorkEntry } from "@/lib/calculateStats"
 import {
   buildPaceProjectionData,
   calculateDefaultPlannedDaysPerWeek,
@@ -256,6 +256,7 @@ export function WorkStats() {
   // console.log("dateRange", dateRange)
 
   const stats = calculateStats(workEntries, dateRange)
+  const weekdayStats = calculateWeekdayStats(workEntries, dateRange)
 
   // Calculate goal as 50% of available working weekdays in the selected period
   // (total weekdays minus time_off weekday entries, matching how calculateStats works)
@@ -617,6 +618,30 @@ export function WorkStats() {
                       <div className="mt-4 text-center text-sm text-muted-foreground">
                         <p>* Time off days (PTO/Sick/Holiday) are not included in work percentage calculations</p>
                       </div>
+
+                      <Separator className="mt-6 mb-4" />
+
+                      <Card className="text-left">
+                        <CardHeader className="pb-3">
+                          <CardTitle className="text-base">Weekday Preference</CardTitle>
+                          <CardDescription>
+                            How often you went to the office on each weekday in this period
+                          </CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                          <div className="h-48">
+                            <ResponsiveContainer width="100%" height="100%">
+                              <BarChart data={weekdayStats} margin={{ top: 4, right: 8, left: -24, bottom: 4 }}>
+                                <CartesianGrid strokeDasharray="3 3" />
+                                <XAxis dataKey="day" />
+                                <YAxis allowDecimals={false} />
+                                <Tooltip formatter={(value: number) => [value, "Office days"]} />
+                                <Bar dataKey="count" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                              </BarChart>
+                            </ResponsiveContainer>
+                          </div>
+                        </CardContent>
+                      </Card>
                     </div>
                   )}
                 </>

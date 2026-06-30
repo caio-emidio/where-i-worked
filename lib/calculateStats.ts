@@ -1,4 +1,4 @@
-import { isWithinInterval, isWeekend, startOfDay } from "date-fns";
+import { getDay, isWithinInterval, isWeekend, startOfDay } from "date-fns";
 
 export enum Location {
     OFFICE = "office",
@@ -46,4 +46,37 @@ export function calculateStats(workEntries: WorkEntry[], dateRange: { start: Dat
         homePercentage,
         weekEndEntriesCount
     }
+}
+
+export interface WeekdayStat {
+    day: "Mon" | "Tue" | "Wed" | "Thu" | "Fri"
+    count: number
+}
+
+// Calculate how many times the user went to the office on each weekday (Mon–Fri)
+export function calculateWeekdayStats(workEntries: WorkEntry[], dateRange: { start: Date; end: Date }): WeekdayStat[] {
+    const officeEntriesInRange = workEntries.filter((entry) => {
+        const d = startOfDay(entry.date)
+        return (
+            entry.location === Location.OFFICE &&
+            !isWeekend(d) &&
+            isWithinInterval(d, {
+                start: startOfDay(dateRange.start),
+                end: startOfDay(dateRange.end),
+            })
+        )
+    })
+
+    // getDay(): 0 = Sun, 1 = Mon, … 5 = Fri, 6 = Sat
+    const dayLabels: WeekdayStat["day"][] = ["Mon", "Tue", "Wed", "Thu", "Fri"]
+    const counts: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 }
+
+    for (const entry of officeEntriesInRange) {
+        const dow = getDay(entry.date)
+        if (dow >= 1 && dow <= 5) {
+            counts[dow]++
+        }
+    }
+
+    return dayLabels.map((label, i) => ({ day: label, count: counts[i + 1] }))
 }

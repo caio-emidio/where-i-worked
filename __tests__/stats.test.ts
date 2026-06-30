@@ -1,4 +1,4 @@
-import { calculateStats, Location, WorkEntry } from "../lib/calculateStats";
+import { calculateStats, calculateWeekdayStats, Location, WorkEntry } from "../lib/calculateStats";
 
 describe("calculateStats - Monthly Range with Weekend Office Days", () => {
     const mockEntries: WorkEntry[] = [
@@ -56,3 +56,85 @@ describe("calculateStats - Monthly Range with Weekend Office Days", () => {
     });
 });
 
+describe("calculateWeekdayStats", () => {
+    const dateRange = {
+        start: new Date("2025-05-01"),
+        end: new Date("2025-05-31"),
+    };
+
+    it("basic case: counts office days per weekday correctly", () => {
+        // 2025-05-01 = Thu, 2025-05-05 = Mon, 2025-05-06 = Tue, 2025-05-07 = Wed
+        const entries: WorkEntry[] = [
+            { date: new Date("2025-05-01"), location: Location.OFFICE }, // Thu
+            { date: new Date("2025-05-05"), location: Location.OFFICE }, // Mon
+            { date: new Date("2025-05-06"), location: Location.OFFICE }, // Tue
+            { date: new Date("2025-05-06"), location: Location.OFFICE }, // Tue (second visit same day is unlikely but counted)
+            { date: new Date("2025-05-07"), location: Location.OFFICE }, // Wed
+        ];
+
+        const result = calculateWeekdayStats(entries, dateRange);
+
+        expect(result).toHaveLength(5);
+        expect(result[0]).toEqual({ day: "Mon", count: 1 }); // May 5
+        expect(result[1]).toEqual({ day: "Tue", count: 2 }); // May 6 (×2)
+        expect(result[2]).toEqual({ day: "Wed", count: 1 }); // May 7
+        expect(result[3]).toEqual({ day: "Thu", count: 1 }); // May 1
+        expect(result[4]).toEqual({ day: "Fri", count: 0 });
+    });
+
+    it("empty range: returns all zeros", () => {
+        const result = calculateWeekdayStats([], dateRange);
+
+        expect(result).toEqual([
+            { day: "Mon", count: 0 },
+            { day: "Tue", count: 0 },
+            { day: "Wed", count: 0 },
+            { day: "Thu", count: 0 },
+            { day: "Fri", count: 0 },
+        ]);
+    });
+
+    it("only home/time_off entries: all counts are 0", () => {
+        const entries: WorkEntry[] = [
+            { date: new Date("2025-05-01"), location: Location.HOME },      // Thu
+            { date: new Date("2025-05-02"), location: Location.TIME_OFF },   // Fri
+            { date: new Date("2025-05-05"), location: Location.HOME },       // Mon
+        ];
+
+        const result = calculateWeekdayStats(entries, dateRange);
+
+        expect(result.every((r) => r.count === 0)).toBe(true);
+    });
+
+    it("multi-week span: counts accumulate across weeks", () => {
+        // Two Mondays, two Wednesdays, one Friday
+        const entries: WorkEntry[] = [
+            { date: new Date("2025-05-05"), location: Location.OFFICE }, // Mon week 1
+            { date: new Date("2025-05-07"), location: Location.OFFICE }, // Wed week 1
+            { date: new Date("2025-05-09"), location: Location.OFFICE }, // Fri week 1
+            { date: new Date("2025-05-12"), location: Location.OFFICE }, // Mon week 2
+            { date: new Date("2025-05-14"), location: Location.OFFICE }, // Wed week 2
+        ];
+
+        const result = calculateWeekdayStats(entries, dateRange);
+
+        expect(result[0]).toEqual({ day: "Mon", count: 2 });
+        expect(result[1]).toEqual({ day: "Tue", count: 0 });
+        expect(result[2]).toEqual({ day: "Wed", count: 2 });
+        expect(result[3]).toEqual({ day: "Thu", count: 0 });
+        expect(result[4]).toEqual({ day: "Fri", count: 1 });
+    });
+
+    it("weekend office entries are excluded", () => {
+        const entries: WorkEntry[] = [
+            { date: new Date("2025-05-10"), location: Location.OFFICE }, // Saturday
+            { date: new Date("2025-05-11"), location: Location.OFFICE }, // Sunday
+            { date: new Date("2025-05-12"), location: Location.OFFICE }, // Monday
+        ];
+
+        const result = calculateWeekdayStats(entries, dateRange);
+
+        expect(result[0]).toEqual({ day: "Mon", count: 1 }); // only Monday counted
+        expect(result.slice(1).every((r) => r.count === 0)).toBe(true);
+    });
+});

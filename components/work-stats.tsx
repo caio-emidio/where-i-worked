@@ -636,7 +636,7 @@ export function WorkStats() {
                                 <XAxis dataKey="day" />
                                 <YAxis allowDecimals={false} />
                                 <Tooltip formatter={(value: number) => [value, "Office days"]} />
-                                <Bar dataKey="count" name="Office days" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                                <Bar dataKey="count" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                               </BarChart>
                             </ResponsiveContainer>
                           </div>

@@ -130,11 +130,17 @@ export function WorkStats() {
         }
       } catch (error) {
         console.error("Error fetching planned entries:", error)
+        toast({
+          title: "Error: Loading planned records",
+          description: "Could not load your planned records.",
+          variant: "destructive",
+          duration: 3000,
+        })
       }
     }
 
     fetchPlannedEntries()
-  }, [user, supabase])
+  }, [user, supabase, toast])
 
   function getCustomQuarterRange(date = new Date()) {
     const year = date.getFullYear();

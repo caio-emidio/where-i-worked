@@ -23,11 +23,19 @@ export function PlanningTracker() {
 	const [rangeEndDate, setRangeEndDate] = useState<Date | null>( null );
 	const { plannedEntries, saveEntry, deleteEntry, loadingAction } = usePlannedEntries( user );
 
+	const buildDateRange = ( start: Date, end: Date ) => {
+		const dates: Date[] = [];
+		let current = new Date( start );
+		while ( current <= end ) {
+			dates.push( new Date( current ) );
+			current.setDate( current.getDate() + 1 );
+		}
+		return dates;
+	};
+
 	const handleSave = () => {
 		if ( rangeMode && rangeEndDate && !checkStartIsAfterEnd( selectedDate, rangeEndDate ) ) {
-			const dates = []; let curr = new Date( selectedDate );
-			while ( curr <= rangeEndDate ) { dates.push( new Date( curr ) ); curr.setDate( curr.getDate() + 1 ); }
-			saveEntry( dates, selectedLocation );
+			saveEntry( buildDateRange( selectedDate, rangeEndDate ), selectedLocation );
 		} else if ( !rangeMode ) {
 			saveEntry( [selectedDate], selectedLocation );
 		}
@@ -35,9 +43,7 @@ export function PlanningTracker() {
 
 	const handleDelete = () => {
 		if ( rangeMode && rangeEndDate && !checkStartIsAfterEnd( selectedDate, rangeEndDate ) ) {
-			const dates = []; let curr = new Date( selectedDate );
-			while ( curr <= rangeEndDate ) { dates.push( new Date( curr ) ); curr.setDate( curr.getDate() + 1 ); }
-			deleteEntry( dates );
+			deleteEntry( buildDateRange( selectedDate, rangeEndDate ) );
 		} else if ( !rangeMode ) {
 			deleteEntry( [selectedDate] );
 		}

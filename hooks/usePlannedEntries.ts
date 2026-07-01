@@ -1,22 +1,19 @@
 "use client";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { format, isAfter, startOfDay } from "date-fns";
 import { createClientSupabaseClient } from "@/lib/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { WorkEntry, WorkLocation } from "@/types/work-entry";
 
-export function usePlannedEntries( user ) {
+type AuthUser = { id: string } | null | undefined
+
+export function usePlannedEntries( user: AuthUser ) {
 	const [plannedEntries, setPlannedEntries] = useState<WorkEntry[]>( [] );
 	const [loadingAction, setLoadingAction] = useState<"save" | "delete" | null>( null );
 	const supabase = createClientSupabaseClient();
 	const { toast } = useToast();
 
-	useEffect( () => {
-		if ( !user ) return;
-		fetchEntries();
-	}, [user] );
-
-	const fetchEntries = async () => {
+	const fetchEntries = useCallback( async () => {
 		if ( !user ) return;
 		const today = format( startOfDay( new Date() ), "yyyy-MM-dd" );
 
@@ -37,7 +34,12 @@ export function usePlannedEntries( user ) {
 		}
 
 		setPlannedEntries( data.map( ( entry ) => ( { ...entry, date: new Date( entry.date ) } ) ) );
-	};
+	}, [supabase, toast, user] );
+
+	useEffect( () => {
+		if ( !user ) return;
+		fetchEntries();
+	}, [fetchEntries, user] );
 
 	const saveEntry = async ( dates: Date[], location: WorkLocation ) => {
 		if ( !user ) return;

@@ -10,6 +10,7 @@ export type PaceProjectionPoint = {
   date: string
   label: string
   actualOfficeDays: number | null
+  plannedOfficeDays: number | null
   expectedOfficeDays: number
   projectedOfficeDays: number | null
   isToday: boolean
@@ -20,6 +21,7 @@ type PaceProjectionParams = {
   start: Date
   end: Date
   today?: Date
+  plannedEntries?: WorkEntry[]
   plannedDaysPerWeek: number
   goalDays?: number
 }
@@ -58,6 +60,7 @@ export function buildPaceProjectionData({
   start,
   end,
   today = new Date(),
+  plannedEntries = [],
   plannedDaysPerWeek,
   goalDays = OFFICE_GOAL_DAYS,
 }: PaceProjectionParams) {
@@ -82,12 +85,27 @@ export function buildPaceProjectionData({
       )
       .map((entry) => format(startOfDay(entry.date), "yyyy-MM-dd")),
   )
+  const hasPlannedEntries = plannedEntries.length > 0
+  const plannedOfficeEntryDates = new Set(
+    plannedEntries
+      .filter(
+        (entry) =>
+          entry.location === Location.OFFICE &&
+          isAfter(startOfDay(entry.date), effectiveToday) &&
+          isWithinInterval(startOfDay(entry.date), {
+            start: normalizedStart,
+            end: normalizedEnd,
+          }),
+      )
+      .map((entry) => format(startOfDay(entry.date), "yyyy-MM-dd")),
+  )
 
   const totalCalendarDays = Math.max(differenceInCalendarDays(normalizedEnd, normalizedStart), 1)
   const dailyProjectionRate = plannedDaysPerWeek / DAYS_PER_WEEK
 
   let cumulativeOfficeDays = 0
   let officeDaysToday = 0
+  let cumulativePlannedFutureOfficeDays = 0
 
   const points: PaceProjectionPoint[] = []
   let currentDate = normalizedStart
@@ -107,11 +125,19 @@ export function buildPaceProjectionData({
     const daysFromToday = differenceInCalendarDays(currentDate, effectiveToday)
     const isFuture = isAfter(currentDate, effectiveToday)
     const isCurrentDay = currentDate.getTime() === effectiveToday.getTime()
+    if (isFuture && plannedOfficeEntryDates.has(dateKey)) {
+      cumulativePlannedFutureOfficeDays += 1
+    }
 
     points.push({
       date: dateKey,
       label: format(currentDate, "MMM d"),
       actualOfficeDays: isFuture ? null : cumulativeOfficeDays,
+      plannedOfficeDays: isFuture
+        ? hasPlannedEntries
+          ? officeDaysToday + cumulativePlannedFutureOfficeDays
+          : null
+        : cumulativeOfficeDays,
       expectedOfficeDays: Number(((daysFromStart / totalCalendarDays) * goalDays).toFixed(1)),
       projectedOfficeDays:
         isBefore(currentDate, effectiveToday)

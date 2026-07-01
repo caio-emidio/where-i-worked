@@ -49,6 +49,7 @@ type PeriodType = "week" | "month" | "quarter" | "custom"
 
 export function WorkStats() {
   const [workEntries, setWorkEntries] = useState<WorkEntry[]>([])
+  const [plannedEntries, setPlannedEntries] = useState<WorkEntry[]>([])
   const [periodType, setPeriodType] = useState<PeriodType>("quarter")
   const [periodOffset, setPeriodOffset] = useState(0)
   const [customRange, setCustomRange] = useState<DateRange | null>(null)
@@ -102,6 +103,38 @@ export function WorkStats() {
 
     fetchEntries()
   }, [user, supabase, toast, customStartDate, customEndDate])
+
+  useEffect(() => {
+    const fetchPlannedEntries = async () => {
+      if (!user) return
+
+      try {
+        const { data, error } = await supabase
+          .from("planned_entries")
+          .select("*")
+          .eq("user_id", user.id)
+          .gt("date", format(startOfDay(new Date()), "yyyy-MM-dd"))
+          .order("date", { ascending: true })
+
+        if (error) {
+          throw error
+        }
+
+        if (data) {
+          setPlannedEntries(
+            data.map((entry) => ({
+              ...entry,
+              date: new Date(entry.date),
+            })),
+          )
+        }
+      } catch (error) {
+        console.error("Error fetching planned entries:", error)
+      }
+    }
+
+    fetchPlannedEntries()
+  }, [user, supabase])
 
   function getCustomQuarterRange(date = new Date()) {
     const year = date.getFullYear();
@@ -288,6 +321,7 @@ export function WorkStats() {
 
   const paceProjection = buildPaceProjectionData({
     workEntries,
+    plannedEntries,
     start: dateRange.start,
     end: dateRange.end,
     plannedDaysPerWeek: plannedOfficeDaysPerWeek,
@@ -297,6 +331,7 @@ export function WorkStats() {
     goalDays,
     Math.ceil(paceProjection.projectedOfficeDaysAtDeadline),
     paceProjection.officeDaysToday,
+    ...paceProjection.points.map((point) => point.plannedOfficeDays ?? 0),
   ) + 2
 
   // Derive expected-by-today from the pace projection curve
@@ -473,6 +508,15 @@ export function WorkStats() {
                           strokeWidth={2}
                           strokeDasharray="6 4"
                           dot={false}
+                        />
+                        <Line
+                          type="monotone"
+                          dataKey="plannedOfficeDays"
+                          name="Planned"
+                          stroke="#4ade80"
+                          strokeWidth={2}
+                          dot={false}
+                          connectNulls={false}
                         />
                         <Line
                           type="monotone"

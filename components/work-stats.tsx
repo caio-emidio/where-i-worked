@@ -588,7 +588,7 @@ export function WorkStats() {
                             <div className="text-xs text-muted-foreground mt-1">{stats.officeCount} days</div>
                             {stats.weekEndEntriesCount > 0 && (
                               <div className="mt-1 text-xs text-muted-foreground">
-                                <strong>Note: Weekend office days are also included in the total.</strong>
+                                <strong>Note: Weekend office days ({stats.weekEndEntriesCount} {stats.weekEndEntriesCount === 1 ? "Day" : "Days"}) are also included in the total.</strong>
                               </div>
                             )}
                           </CardContent>

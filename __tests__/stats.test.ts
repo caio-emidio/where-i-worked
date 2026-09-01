@@ -43,16 +43,55 @@ describe("calculateStats - Monthly Range with Weekend Office Days", () => {
         end: new Date("2025-05-31"),
     };
 
-    it("should correctly calculate stats for April with weekend office days", () => {
+    it("should correctly calculate stats for May with weekend office days", () => {
         const stats = calculateStats(mockEntries, dateRange);
 
         expect(stats.officeCount).toBe(13); // 11 weekdays + 2 Saturdays
         expect(stats.homeCount).toBe(8);
         expect(stats.timeOffCount).toBe(3);
         expect(stats.totalWorkDaysExcludingTimeOff).toBe(21); // 13 office + 8 home (weekdays + weekend work days, excludes 3 time_off)
-        expect(stats.officePercentage).toBeCloseTo((13 / 21) * 100, 1);
-        expect(stats.homePercentage).toBeCloseTo((8 / 21) * 100, 1);
+        expect(stats.totalWeekdayWorkDays).toBe(19); // 11 weekday office + 8 home
+        expect(stats.officePercentage).toBeCloseTo((13 / 19) * 100, 1);
+        expect(stats.homePercentage).toBeCloseTo((8 / 19) * 100, 1);
         expect(stats.weekEndEntriesCount).toBe(2); // two Saturdays
+    });
+
+    it("excludes weekend days from percentage denominator but includes them in counts", () => {
+        const entries: WorkEntry[] = [
+            // 8 weekday office days
+            { date: new Date("2025-06-02"), location: Location.OFFICE }, // Mon
+            { date: new Date("2025-06-03"), location: Location.OFFICE }, // Tue
+            { date: new Date("2025-06-04"), location: Location.OFFICE }, // Wed
+            { date: new Date("2025-06-05"), location: Location.OFFICE }, // Thu
+            { date: new Date("2025-06-06"), location: Location.OFFICE }, // Fri
+            { date: new Date("2025-06-09"), location: Location.OFFICE }, // Mon
+            { date: new Date("2025-06-10"), location: Location.OFFICE }, // Tue
+            { date: new Date("2025-06-11"), location: Location.OFFICE }, // Wed
+            // 1 Saturday office day
+            { date: new Date("2025-06-07"), location: Location.OFFICE }, // Sat
+            // 12 home days (weekdays)
+            { date: new Date("2025-06-12"), location: Location.HOME },
+            { date: new Date("2025-06-13"), location: Location.HOME },
+            { date: new Date("2025-06-16"), location: Location.HOME },
+            { date: new Date("2025-06-17"), location: Location.HOME },
+            { date: new Date("2025-06-18"), location: Location.HOME },
+            { date: new Date("2025-06-19"), location: Location.HOME },
+            { date: new Date("2025-06-20"), location: Location.HOME },
+            { date: new Date("2025-06-23"), location: Location.HOME },
+            { date: new Date("2025-06-24"), location: Location.HOME },
+            { date: new Date("2025-06-25"), location: Location.HOME },
+            { date: new Date("2025-06-26"), location: Location.HOME },
+            { date: new Date("2025-06-27"), location: Location.HOME },
+        ];
+
+        const range = { start: new Date("2025-06-01"), end: new Date("2025-06-30") };
+        const stats = calculateStats(entries, range);
+
+        expect(stats.officeCount).toBe(9);
+        expect(stats.homeCount).toBe(12);
+        expect(stats.totalWeekdayWorkDays).toBe(20); // 8 weekday office + 12 home
+        expect(stats.officePercentage).toBe(45); // 9 / 20
+        expect(stats.homePercentage).toBe(60); // 12 / 20
     });
 });
 

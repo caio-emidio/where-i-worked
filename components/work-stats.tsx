@@ -312,10 +312,10 @@ export function WorkStats() {
 
   const totalCountableDays = periodWeekdays - timeOffWeekdays
 
-  // Prepare data for pie chart - excluding time_off
+  // Prepare data for pie chart - slice sizes reflect displayed percentages
   const chartData = [
-    { name: "Office", value: stats.officeCount, percent: stats.officePercentage, color: "hsl(var(--primary))" },
-    { name: "Home", value: stats.homeCount, percent: stats.homePercentage, color: theme === "dark" ? "#eab308" : "#eab308" },
+    { name: "Office", value: stats.officePercentage, percent: stats.officePercentage, color: "hsl(var(--primary))" },
+    { name: "Home", value: stats.homePercentage, percent: stats.homePercentage, color: theme === "dark" ? "#eab308" : "#eab308" },
   ].filter((item) => item.value > 0)
 
   return (
@@ -548,7 +548,7 @@ export function WorkStats() {
                               outerRadius={70}
                               fill="#8884d8"
                               dataKey="value"
-                              label={({ percent }) => `${percent}%`}
+                              label={(entry) => `${entry.percent}%`}
                             >
                               {chartData.map((entry, index) => (
                                 <Cell key={`cell-${index}`} fill={entry.color} />
@@ -588,7 +588,7 @@ export function WorkStats() {
                             <div className="text-xs text-muted-foreground mt-1">{stats.officeCount} days</div>
                             {stats.weekEndEntriesCount > 0 && (
                               <div className="mt-1 text-xs text-muted-foreground">
-                                <strong>Note: Weekend office days are also included in the total.</strong>
+                                <strong>Weekend days count toward day totals and percentages, but are excluded from the weekday base used for percentage calculations.</strong>
                               </div>
                             )}
                           </CardContent>
@@ -616,7 +616,7 @@ export function WorkStats() {
                       </div>
 
                       <div className="mt-4 text-center text-sm text-muted-foreground">
-                        <p>* Time off days (PTO/Sick/Holiday) are not included in work percentage calculations</p>
+                        <p>* Time off days (PTO/Sick/Holiday) and weekends are excluded from the weekday base used for percentage calculations</p>
                       </div>
 
                       <Separator className="mt-6 mb-4" />

@@ -30,18 +30,20 @@ export function calculateStats(workEntries: WorkEntry[], dateRange: { start: Dat
     const officeCount = workEntriesOnly.filter((entry) => entry.location === Location.OFFICE).length
     const homeCount = workEntriesOnly.filter((entry) => entry.location === Location.HOME).length
     const totalWorkDaysExcludingTimeOff = workEntriesOnly.length
+    const totalWeekdayWorkDays = workEntriesOnly.filter((entry) => !isWeekend(entry.date)).length
 
     // Count time_off days separately (not included in percentages)
     const timeOffCount = entriesInRange.filter((entry) => entry.location === Location.TIME_OFF).length
 
-    const officePercentage = totalWorkDaysExcludingTimeOff > 0 ? Number(((officeCount / totalWorkDaysExcludingTimeOff) * 100).toFixed(1)) : 0
-    const homePercentage = totalWorkDaysExcludingTimeOff > 0 ? Number(((homeCount / totalWorkDaysExcludingTimeOff) * 100).toFixed(1)) : 0
+    const officePercentage = totalWeekdayWorkDays > 0 ? Number(((officeCount / totalWeekdayWorkDays) * 100).toFixed(1)) : 0
+    const homePercentage = totalWeekdayWorkDays > 0 ? Number(((homeCount / totalWeekdayWorkDays) * 100).toFixed(1)) : 0
 
     return {
         officeCount,
         homeCount,
         timeOffCount,
         totalWorkDaysExcludingTimeOff,
+        totalWeekdayWorkDays,
         officePercentage,
         homePercentage,
         weekEndEntriesCount

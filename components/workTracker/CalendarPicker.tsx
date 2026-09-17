@@ -14,7 +14,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import React from "react";
 import { WorkEntry } from "@/types/work-entry";
-import { DayContentProps } from "react-day-picker";
+import { DayContentProps, Matcher } from "react-day-picker";
 import { WeatherDay, WeatherCondition } from "@/hooks/useWeather";
 
 type CalendarPickerProps = {
@@ -26,6 +26,7 @@ type CalendarPickerProps = {
 	setRangeEndDate: ( date: Date | null ) => void;
 	workEntries: WorkEntry[];
 	forecast?: WeatherDay[];
+	disabled?: Matcher | Matcher[];
 };
 
 function WeatherIcon( { condition, className }: { condition: WeatherCondition; className?: string } ) {
@@ -74,6 +75,7 @@ export function CalendarPicker( {
 	setRangeEndDate,
 	workEntries,
 	forecast = [],
+	disabled,
 }: CalendarPickerProps ) {
 	const officeDates = workEntries.filter( ( e ) => e.location === "office" ).map( ( e ) => e.date );
 	const homeDates = workEntries.filter( ( e ) => e.location === "home" ).map( ( e ) => e.date );
@@ -105,6 +107,7 @@ export function CalendarPicker( {
 			classNames: calendarWeatherClassNames,
 			components: { DayContent: WeatherDayContent },
 		}),
+		...(disabled && { disabled }),
 	};
 
 	return (

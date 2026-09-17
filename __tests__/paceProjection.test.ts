@@ -41,16 +41,61 @@ describe("paceProjection", () => {
 
     expect(todayPoint).toMatchObject({
       actualOfficeDays: 3,
+      plannedOfficeDays: 3,
       projectedOfficeDays: 3,
       isToday: true,
     })
     expect(tomorrowPoint).toMatchObject({
       actualOfficeDays: null,
+      plannedOfficeDays: null,
       projectedOfficeDays: 3.5,
     })
     expect(yesterdayPoint).toMatchObject({
       actualOfficeDays: 2,
+      plannedOfficeDays: 2,
       projectedOfficeDays: null,
+    })
+  })
+
+  it("uses planned office entries after today while matching actuals up to today", () => {
+    const workEntries: WorkEntry[] = [
+      { date: new Date("2026-05-01"), location: Location.OFFICE },
+      { date: new Date("2026-05-02"), location: Location.OFFICE },
+      { date: new Date("2026-05-11"), location: Location.OFFICE },
+    ]
+    const plannedEntries: WorkEntry[] = [
+      { date: new Date("2026-05-12"), location: Location.OFFICE },
+      { date: new Date("2026-05-16"), location: Location.OFFICE },
+      { date: new Date("2026-05-17"), location: Location.HOME },
+    ]
+
+    const projection = buildPaceProjectionData({
+      workEntries,
+      plannedEntries,
+      start: new Date("2026-05-01"),
+      end: new Date("2026-05-17"),
+      today: new Date("2026-05-11"),
+      plannedDaysPerWeek: 3.5,
+    })
+
+    const todayPoint = projection.points.find((point) => point.date === "2026-05-11")
+    const may12Point = projection.points.find((point) => point.date === "2026-05-12")
+    const may16Point = projection.points.find((point) => point.date === "2026-05-16")
+    const may17Point = projection.points.find((point) => point.date === "2026-05-17")
+
+    expect(todayPoint).toMatchObject({
+      actualOfficeDays: 3,
+      plannedOfficeDays: 3,
+    })
+    expect(may12Point).toMatchObject({
+      actualOfficeDays: null,
+      plannedOfficeDays: 4,
+    })
+    expect(may16Point).toMatchObject({
+      plannedOfficeDays: 5,
+    })
+    expect(may17Point).toMatchObject({
+      plannedOfficeDays: 5,
     })
   })
 

@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect } from "react";
-import { isSameDay } from "date-fns";
+import { format, isSameDay, startOfDay } from "date-fns";
 import { createClientSupabaseClient } from "@/lib/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { WorkEntry, WorkLocation } from "@/types/work-entry";
@@ -51,6 +51,13 @@ export function useWorkEntries( user ) {
 					user_id: user.id,
 				} );
 			}
+		}
+
+		const dateKeys = Array.from(
+			new Set( dates.map( ( date ) => format( startOfDay( date ), "yyyy-MM-dd" ) ) ),
+		);
+		if ( dateKeys.length > 0 ) {
+			await supabase.from( "planned_entries" ).delete().eq( "user_id", user.id ).in( "date", dateKeys );
 		}
 
 		await fetchEntries();
